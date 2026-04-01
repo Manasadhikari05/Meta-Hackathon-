@@ -1,0 +1,163 @@
+﻿=======================================================
+  CONTENT MODERATION OPENENV ù ENDPOINT TESTS
+=======================================================
+
+1. GET /health
+  HTTP 200
+  {
+  "status": "ok"
+}
+
+2. GET /state (fresh server)
+  HTTP 200
+  {
+  "task_id": "task1",
+  "step": 1,
+  "done": true,
+  "current_post_id": "p_001"
+}
+
+3. POST /reset?task_id=task1
+  HTTP 200
+  {
+  "task_id": "task1",
+  "step": 0,
+  "post": {
+    "post_id": "p_001",
+    "platform": "community_forum",
+    "content": "Buy followers cheap!! 10k for $5. DM now!!!"
+  },
+  "author": {
+    "account_age_days": 3,
+    "prior_violations": 2,
+    "total_posts": 4
+  },
+  "thread_context": {
+    "topic": "technology",
+    "reply_to_post_id": null
+  },
+  "instructions": "Moderate this post: choose app
+
+  [Observation summary]
+    post_id : p_001
+    platform: community_forum
+    content : Buy followers cheap!! 10k for $5. DM now!!!...
+    author  : {'account_age_days': 3, 'prior_violations': 2, 'total_posts': 4}
+    topic   : technology
+    step    : 0
+
+4. POST /step (remove/hate_speech/high/0.92)
+  HTTP 200
+  {
+  "observation": {
+    "task_id": "task1",
+    "step": 1,
+    "post": {
+      "post_id": "p_001",
+      "platform": "community_forum",
+      "content": "Buy followers cheap!! 10k for $5. DM now!!!"
+    },
+    "author": {
+      "account_age_days": 3,
+      "prior_violations": 2,
+      "total_posts": 4
+    },
+    "thread_context": {
+      "topic": "technology",
+      "reply_to_post_id": null
+    }
+
+  [Result summary]
+    reward.value: 0.7
+    done        : True
+    info        : {'post_id': 'p_001'}
+
+5. GET /state (after task1 done)
+  HTTP 200
+  {
+  "task_id": "task1",
+  "step": 1,
+  "done": true,
+  "current_post_id": "p_001"
+}
+
+6. POST /reset?task_id=task2 (batch)
+  HTTP 200
+  {
+  "task_id": "task2",
+  "step": 0,
+  "post": {
+    "post_id": "p_016",
+    "platform": "forum",
+    "content": "Wow great job genius \ud83d\ude44"
+  },
+  "author": {
+    "account_age_days": 300,
+    "prior_violations": 0,
+    "total_posts": 800
+  },
+  "thread_context": {
+    "topic": "coding",
+    "reply_to_post_id": "p_014"
+  },
+  "instructions": "Moderate each post in the batch. Borderline tox
+
+  task_id=task2  step=0  post_id=p_016
+
+7. POST /reset?task_id=task3 (hard/edge)
+  HTTP 200
+  {
+  "task_id": "task3",
+  "step": 0,
+  "post": {
+    "post_id": "p_031",
+    "platform": "forum",
+    "content": "k!ll yourself lol"
+  },
+  "author": {
+    "account_age_days": 400,
+    "prior_violations": 2,
+    "total_posts": 600
+  },
+  "thread_context": {
+    "topic": "gaming",
+    "reply_to_post_id": "p_029"
+  },
+  "instructions": "Hard moderation: obfuscation, sarcasm, and implicit harm. You m
+
+  task_id=task3  step=0  post_id=p_031
+
+8. POST /reset?task_id=garbage (error handling)
+  HTTP 200
+  {
+  "error": "Invalid task_id: garbage"
+}
+
+9. POST /step with bad decision value (expect 422)
+  HTTP 422
+  {
+  "detail": [
+    {
+      "type": "literal_error",
+      "loc": [
+        "body",
+        "decision"
+      ],
+      "msg": "Input should be 'approve', 'remove' or 'escalate'",
+      "input": "WRONG_VAL",
+      "ctx": {
+        "expected": "'approve', 'remove' or 'escalate'"
+      }
+    }
+  ]
+}
+
+10. POST /step again after done (episode guard)
+  HTTP 200
+  {
+  "error": "Episode is done. Call reset() first."
+}
+
+=======================================================
+  ALL CHECKS COMPLETE
+=======================================================

@@ -1,0 +1,36 @@
+﻿Using model: nvidia/nemotron-3-super-120b-a12b:free
+Server: http://127.0.0.1:8000
+Model : nvidia/nemotron-3-super-120b-a12b:free
+
+=======================================================
+
+>> Running task1...
+    ΓåÆ decision=remove  reason=spam  severity=medium  conf=0.95
+    Γ£ô reward=0.9  done=True
+  task1 avg score: 0.9
+
+>> Running task2...
+  Γ£ù task2 FAILED: Could not extract JSON from model response:
+
+
+>> Running task3...
+    ΓåÆ decision=remove  reason=self_harm  severity=high  conf=0.96
+    Γ£ô reward=0.6802  done=False
+    ΓåÆ decision=escalate  reason=harassment  severity=low  conf=0.6
+    Γ£ô reward=0.56425  done=False
+    ΓåÆ decision=remove  reason=harassment  severity=high  conf=0.9
+    Γ£ô reward=0.5441666666666667  done=False
+    ΓåÆ decision=approve  reason=clean  severity=low  conf=0.95
+    Γ£ô reward=0.490225  done=False
+  Γ£ù task3 FAILED: Could not extract JSON from model response:
+
+
+=======================================================
+FINAL SCORES
+=======================================================
+  task1: 0.9000  ##################
+  task2: 0.0000  
+  task3: 0.0000  
+
+  Overall: 0.3000
+=======================================================

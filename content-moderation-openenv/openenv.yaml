@@ -1,0 +1,13 @@
+name: content-moderation-openenv
+version: 0.1.0
+description: "OpenEnv-compliant content moderation environment"
+author: "TODO"
+entrypoint: "env/env.py:ContentModerationEnv"
+tasks:
+  - id: task1_single
+    description: "Single-post moderation"
+  - id: task2_batch
+    description: "Batch moderation"
+  - id: task3_edge
+    description: "Edge-case moderation"
+
