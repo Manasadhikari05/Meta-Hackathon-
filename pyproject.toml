@@ -7,7 +7,7 @@ name = "content-moderation-openenv"
 version = "0.1.0"
 description = "RL-style environment for content moderation."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
     "fastapi",
     "uvicorn",
@@ -16,5 +16,9 @@ dependencies = [
     "python-dotenv",
     "requests",
     "httpx",
-    "pytest"
+    "pytest",
+    "openenv-core>=0.2.0"
 ]
+
+[project.scripts]
+server = "server.app:main"
