@@ -1,0 +1,12 @@
+name: content-moderation-openenv
+version: 0.1.0
+description: "OpenEnv-compliant content moderation environment"
+author: "Team HackMeta"
+entrypoint: "env/env.py:ContentModerationEnv"
+tasks:
+  - id: task1
+    description: "Single-post moderation"
+  - id: task2
+    description: "Batch moderation"
+  - id: task3
+    description: "Edge-case moderation"

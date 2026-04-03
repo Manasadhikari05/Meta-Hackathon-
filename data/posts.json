@@ -1,0 +1,411 @@
+[
+    {
+      "post_id": "p_001",
+      "task_difficulty": "easy",
+      "platform": "community_forum",
+      "content": "buy followers cheap bro 10k for $5. DM rn!!!",
+      "author": { "account_age_days": 3, "prior_violations": 2, "total_posts": 4 },
+      "thread_context": { "topic": "technology", "reply_to_post_id": null },
+      "gold_label": { "decision": "remove", "reason_code": "spam", "severity": "high", "requires_explanation": false, "explanation": "Spam promotion" }
+    },
+    {
+      "post_id": "p_002",
+      "task_difficulty": "easy",
+      "platform": "social_media",
+      "content": "ur an idiot",
+      "author": { "account_age_days": 200, "prior_violations": 1, "total_posts": 300 },
+      "thread_context": { "topic": "general", "reply_to_post_id": "p_010" },
+      "gold_label": { "decision": "remove", "reason_code": "abuse", "severity": "high", "requires_explanation": false, "explanation": "Direct insult" }
+    },
+    {
+      "post_id": "p_003",
+      "task_difficulty": "easy",
+      "platform": "forum",
+      "content": "check out my crypto scheme guaranteed returns fr",
+      "author": { "account_age_days": 5, "prior_violations": 3, "total_posts": 7 },
+      "thread_context": { "topic": "finance", "reply_to_post_id": null },
+      "gold_label": { "decision": "remove", "reason_code": "scam", "severity": "high", "requires_explanation": false, "explanation": "Financial scam" }
+    },
+    {
+      "post_id": "p_004",
+      "task_difficulty": "easy",
+      "platform": "forum",
+      "content": "thx for sharing this",
+      "author": { "account_age_days": 500, "prior_violations": 0, "total_posts": 1200 },
+      "thread_context": { "topic": "tech", "reply_to_post_id": "p_001" },
+      "gold_label": { "decision": "allow", "reason_code": "safe", "severity": "low", "requires_explanation": false, "explanation": "Positive comment" }
+    },
+    {
+      "post_id": "p_005",
+      "task_difficulty": "easy",
+      "platform": "forum",
+      "content": "Visit this link for free gifts!!!",
+      "author": { "account_age_days": 2, "prior_violations": 4, "total_posts": 3 },
+      "thread_context": { "topic": "shopping", "reply_to_post_id": null },
+      "gold_label": { "decision": "remove", "reason_code": "spam", "severity": "high", "requires_explanation": false, "explanation": "Spam link" }
+    },
+    {
+      "post_id": "p_006",
+      "task_difficulty": "easy",
+      "platform": "forum",
+      "content": "great tut, really helped",
+      "author": { "account_age_days": 700, "prior_violations": 0, "total_posts": 2000 },
+      "thread_context": { "topic": "education", "reply_to_post_id": null },
+      "gold_label": { "decision": "allow", "reason_code": "safe", "severity": "low", "requires_explanation": false, "explanation": "Positive feedback" }
+    },
+    {
+      "post_id": "p_007",
+      "task_difficulty": "easy",
+      "platform": "forum",
+      "content": "win iphone now!! click link",
+      "author": { "account_age_days": 1, "prior_violations": 5, "total_posts": 2 },
+      "thread_context": { "topic": "general", "reply_to_post_id": null },
+      "gold_label": { "decision": "remove", "reason_code": "spam", "severity": "high", "requires_explanation": false, "explanation": "Scam giveaway" }
+    },
+    {
+      "post_id": "p_008",
+      "task_difficulty": "easy",
+      "platform": "forum",
+      "content": "nice work on this",
+      "author": { "account_age_days": 400, "prior_violations": 0, "total_posts": 800 },
+      "thread_context": { "topic": "design", "reply_to_post_id": "p_004" },
+      "gold_label": { "decision": "allow", "reason_code": "safe", "severity": "low", "requires_explanation": false, "explanation": "Simple appreciation" }
+    },
+    {
+      "post_id": "p_009",
+      "task_difficulty": "easy",
+      "platform": "forum",
+      "content": "this is straight garbage",
+      "author": { "account_age_days": 150, "prior_violations": 1, "total_posts": 100 },
+      "thread_context": { "topic": "reviews", "reply_to_post_id": null },
+      "gold_label": { "decision": "remove", "reason_code": "abuse", "severity": "high", "requires_explanation": false, "explanation": "Direct insult" }
+    },
+    {
+      "post_id": "p_010",
+      "task_difficulty": "easy",
+      "platform": "forum",
+      "content": "helpful expl, thanks",
+      "author": { "account_age_days": 600, "prior_violations": 0, "total_posts": 900 },
+      "thread_context": { "topic": "science", "reply_to_post_id": "p_008" },
+      "gold_label": { "decision": "allow", "reason_code": "safe", "severity": "low", "requires_explanation": false, "explanation": "Constructive comment" }
+    },
+    {
+      "post_id": "p_011",
+      "task_difficulty": "easy",
+      "platform": "forum",
+      "content": "Earn money fast from home!!!",
+      "author": { "account_age_days": 4, "prior_violations": 3, "total_posts": 5 },
+      "thread_context": { "topic": "jobs", "reply_to_post_id": null },
+      "gold_label": { "decision": "remove", "reason_code": "spam", "severity": "high", "requires_explanation": false, "explanation": "Scam job offer" }
+    },
+    {
+      "post_id": "p_012",
+      "task_difficulty": "easy",
+      "platform": "forum",
+      "content": "i actually like this idea",
+      "author": { "account_age_days": 320, "prior_violations": 0, "total_posts": 600 },
+      "thread_context": { "topic": "startup", "reply_to_post_id": null },
+      "gold_label": { "decision": "allow", "reason_code": "safe", "severity": "low", "requires_explanation": false, "explanation": "Neutral positive" }
+    },
+    {
+      "post_id": "p_013",
+      "task_difficulty": "easy",
+      "platform": "forum",
+      "content": "click here for adult content ;)",
+      "author": { "account_age_days": 2, "prior_violations": 2, "total_posts": 3 },
+      "thread_context": { "topic": "general", "reply_to_post_id": null },
+      "gold_label": { "decision": "remove", "reason_code": "nsfw_spam", "severity": "high", "requires_explanation": false, "explanation": "NSFW spam" }
+    },
+    {
+      "post_id": "p_014",
+      "task_difficulty": "easy",
+      "platform": "forum",
+      "content": "Interesting perspective",
+      "author": { "account_age_days": 800, "prior_violations": 0, "total_posts": 2500 },
+      "thread_context": { "topic": "politics", "reply_to_post_id": null },
+      "gold_label": { "decision": "allow", "reason_code": "safe", "severity": "low", "requires_explanation": false, "explanation": "Neutral statement" }
+    },
+    {
+      "post_id": "p_015",
+      "task_difficulty": "easy",
+      "platform": "forum",
+      "content": "ur stupid tbh",
+      "author": { "account_age_days": 100, "prior_violations": 1, "total_posts": 80 },
+      "thread_context": { "topic": "gaming", "reply_to_post_id": "p_014" },
+      "gold_label": { "decision": "remove", "reason_code": "abuse", "severity": "high", "requires_explanation": false, "explanation": "Direct insult" }
+    },
+  
+
+    {
+      "post_id": "p_016",
+      "task_difficulty": "medium",
+      "platform": "forum",
+      "content": "wow great job genius 🙄",
+      "author": { "account_age_days": 300, "prior_violations": 0, "total_posts": 800 },
+      "thread_context": { "topic": "coding", "reply_to_post_id": "p_014" },
+      "gold_label": { "decision": "flag_for_review", "reason_code": "sarcasm", "severity": "medium", "requires_explanation": false, "explanation": "Sarcastic insult" }
+    },
+    {
+      "post_id": "p_017",
+      "task_difficulty": "medium",
+      "platform": "forum",
+      "content": "idea is pretty dumb honestly",
+      "author": { "account_age_days": 150, "prior_violations": 0, "total_posts": 200 },
+      "thread_context": { "topic": "startup", "reply_to_post_id": null },
+      "gold_label": { "decision": "flag_for_review", "reason_code": "borderline_abuse", "severity": "medium", "requires_explanation": false, "explanation": "Mild insult" }
+    },
+    {
+      "post_id": "p_018",
+      "task_difficulty": "medium",
+      "platform": "forum",
+      "content": "You clearly don't understand anything",
+      "author": { "account_age_days": 50, "prior_violations": 1, "total_posts": 40 },
+      "thread_context": { "topic": "education", "reply_to_post_id": "p_017" },
+      "gold_label": { "decision": "flag_for_review", "reason_code": "condescending", "severity": "medium", "requires_explanation": false, "explanation": "Indirect insult" }
+    },
+    {
+      "post_id": "p_019",
+      "task_difficulty": "medium",
+      "platform": "forum",
+      "content": "Not sure this works, seems bad",
+      "author": { "account_age_days": 200, "prior_violations": 0, "total_posts": 300 },
+      "thread_context": { "topic": "tech", "reply_to_post_id": null },
+      "gold_label": { "decision": "allow", "reason_code": "criticism", "severity": "low", "requires_explanation": false, "explanation": "Constructive criticism" }
+    },
+    {
+      "post_id": "p_020",
+      "task_difficulty": "medium",
+      "platform": "forum",
+      "content": "kinda trash tbh ngl",
+      "author": { "account_age_days": 90, "prior_violations": 1, "total_posts": 120 },
+      "thread_context": { "topic": "reviews", "reply_to_post_id": null },
+      "gold_label": { "decision": "flag_for_review", "reason_code": "mild_abuse", "severity": "medium", "requires_explanation": false, "explanation": "Borderline insult" }
+    },
+    {
+      "post_id": "p_021",
+      "task_difficulty": "medium",
+      "platform": "forum",
+      "content": "Your code is terrible but fixable",
+      "author": { "account_age_days": 400, "prior_violations": 0, "total_posts": 900 },
+      "thread_context": { "topic": "coding", "reply_to_post_id": "p_020" },
+      "gold_label": { "decision": "flag_for_review", "reason_code": "mixed_tone", "severity": "medium", "requires_explanation": false, "explanation": "Insult + advice" }
+    },
+    {
+      "post_id": "p_022",
+      "task_difficulty": "medium",
+      "platform": "forum",
+      "content": "I disagree strongly but respect your effort",
+      "author": { "account_age_days": 600, "prior_violations": 0, "total_posts": 1500 },
+      "thread_context": { "topic": "debate", "reply_to_post_id": null },
+      "gold_label": { "decision": "allow", "reason_code": "safe", "severity": "low", "requires_explanation": false, "explanation": "Respectful disagreement" }
+    },
+    {
+      "post_id": "p_023",
+      "task_difficulty": "medium",
+      "platform": "forum",
+      "content": "lol this is so bad smh 😂",
+      "author": { "account_age_days": 120, "prior_violations": 0, "total_posts": 250 },
+      "thread_context": { "topic": "memes", "reply_to_post_id": null },
+      "gold_label": { "decision": "flag_for_review", "reason_code": "mocking", "severity": "medium", "requires_explanation": false, "explanation": "Mocking tone" }
+    },
+    {
+      "post_id": "p_024",
+      "task_difficulty": "medium",
+      "platform": "forum",
+      "content": "Not impressed at all",
+      "author": { "account_age_days": 250, "prior_violations": 0, "total_posts": 500 },
+      "thread_context": { "topic": "reviews", "reply_to_post_id": null },
+      "gold_label": { "decision": "allow", "reason_code": "criticism", "severity": "low", "requires_explanation": false, "explanation": "Neutral criticism" }
+    },
+    {
+      "post_id": "p_025",
+      "task_difficulty": "medium",
+      "platform": "forum",
+      "content": "This makes no sense, what were you thinking?",
+      "author": { "account_age_days": 180, "prior_violations": 0, "total_posts": 350 },
+      "thread_context": { "topic": "design", "reply_to_post_id": "p_024" },
+      "gold_label": { "decision": "flag_for_review", "reason_code": "aggressive", "severity": "medium", "requires_explanation": false, "explanation": "Aggressive questioning" }
+    },
+    {
+      "post_id": "p_026",
+      "task_difficulty": "medium",
+      "platform": "forum",
+      "content": "Maybe rethink your approach",
+      "author": { "account_age_days": 500, "prior_violations": 0, "total_posts": 1000 },
+      "thread_context": { "topic": "coding", "reply_to_post_id": null },
+      "gold_label": { "decision": "allow", "reason_code": "advice", "severity": "low", "requires_explanation": false, "explanation": "Constructive advice" }
+    },
+    {
+      "post_id": "p_027",
+      "task_difficulty": "medium",
+      "platform": "forum",
+      "content": "Honestly pretty useless feature",
+      "author": { "account_age_days": 140, "prior_violations": 0, "total_posts": 220 },
+      "thread_context": { "topic": "product", "reply_to_post_id": null },
+      "gold_label": { "decision": "flag_for_review", "reason_code": "harsh_criticism", "severity": "medium", "requires_explanation": false, "explanation": "Harsh tone" }
+    },
+    {
+      "post_id": "p_028",
+      "task_difficulty": "medium",
+      "platform": "forum",
+      "content": "This isn't great but could improve",
+      "author": { "account_age_days": 300, "prior_violations": 0, "total_posts": 700 },
+      "thread_context": { "topic": "reviews", "reply_to_post_id": null },
+      "gold_label": { "decision": "allow", "reason_code": "balanced_feedback", "severity": "low", "requires_explanation": false, "explanation": "Balanced critique" }
+    },
+    {
+      "post_id": "p_029",
+      "task_difficulty": "medium",
+      "platform": "forum",
+      "content": "ur not very smart r u",
+      "author": { "account_age_days": 210, "prior_violations": 1, "total_posts": 400 },
+      "thread_context": { "topic": "gaming", "reply_to_post_id": "p_028" },
+      "gold_label": { "decision": "flag_for_review", "reason_code": "insult", "severity": "medium", "requires_explanation": false, "explanation": "Indirect insult" }
+    },
+    {
+      "post_id": "p_030",
+      "task_difficulty": "medium",
+      "platform": "forum",
+      "content": "Could be better honestly",
+      "author": { "account_age_days": 320, "prior_violations": 0, "total_posts": 600 },
+      "thread_context": { "topic": "design", "reply_to_post_id": null },
+      "gold_label": { "decision": "allow", "reason_code": "neutral_feedback", "severity": "low", "requires_explanation": false, "explanation": "Neutral critique" }
+    },
+  
+
+    {
+      "post_id": "p_031",
+      "task_difficulty": "hard",
+      "platform": "forum",
+      "content": "k!ll urself lol",
+      "author": { "account_age_days": 400, "prior_violations": 2, "total_posts": 600 },
+      "thread_context": { "topic": "gaming", "reply_to_post_id": "p_029" },
+      "gold_label": { "decision": "remove", "reason_code": "obfuscated_abuse", "severity": "high", "requires_explanation": true, "explanation": "Obfuscated self-harm encouragement" }
+    },
+    {
+      "post_id": "p_032",
+      "task_difficulty": "hard",
+      "platform": "forum",
+      "content": "u r such a g3nius 🙄",
+      "author": { "account_age_days": 120, "prior_violations": 0, "total_posts": 250 },
+      "thread_context": { "topic": "coding", "reply_to_post_id": "p_030" },
+      "gold_label": { "decision": "flag_for_review", "reason_code": "sarcasm_obfuscated", "severity": "medium", "requires_explanation": true, "explanation": "Obfuscated sarcasm" }
+    },
+    {
+      "post_id": "p_033",
+      "task_difficulty": "hard",
+      "platform": "forum",
+      "content": "People like you shouldn't exist",
+      "author": { "account_age_days": 600, "prior_violations": 1, "total_posts": 1500 },
+      "thread_context": { "topic": "politics", "reply_to_post_id": "p_031" },
+      "gold_label": { "decision": "remove", "reason_code": "hate_speech", "severity": "high", "requires_explanation": true, "explanation": "Implicit hate" }
+    },
+    {
+      "post_id": "p_034",
+      "task_difficulty": "hard",
+      "platform": "forum",
+      "content": "Nice opinion... totally not garbage 🙃",
+      "author": { "account_age_days": 220, "prior_violations": 0, "total_posts": 500 },
+      "thread_context": { "topic": "debate", "reply_to_post_id": "p_033" },
+      "gold_label": { "decision": "flag_for_review", "reason_code": "sarcasm", "severity": "medium", "requires_explanation": true, "explanation": "Sarcastic insult" }
+    },
+    {
+      "post_id": "p_035",
+      "task_difficulty": "hard",
+      "platform": "forum",
+      "content": "g0 2 h3ll",
+      "author": { "account_age_days": 90, "prior_violations": 2, "total_posts": 120 },
+      "thread_context": { "topic": "gaming", "reply_to_post_id": null },
+      "gold_label": { "decision": "remove", "reason_code": "obfuscated_abuse", "severity": "high", "requires_explanation": true, "explanation": "Obfuscated insult" }
+    },
+    {
+      "post_id": "p_036",
+      "task_difficulty": "hard",
+      "platform": "forum",
+      "content": "What a br1lliant idea 😂",
+      "author": { "account_age_days": 300, "prior_violations": 0, "total_posts": 700 },
+      "thread_context": { "topic": "startup", "reply_to_post_id": null },
+      "gold_label": { "decision": "flag_for_review", "reason_code": "sarcasm_obfuscated", "severity": "medium", "requires_explanation": true, "explanation": "Sarcastic disguised insult" }
+    },
+    {
+      "post_id": "p_037",
+      "task_difficulty": "hard",
+      "platform": "forum",
+      "content": "u people r all the same stg",
+      "author": { "account_age_days": 500, "prior_violations": 1, "total_posts": 1000 },
+      "thread_context": { "topic": "politics", "reply_to_post_id": null },
+      "gold_label": { "decision": "remove", "reason_code": "hate_generalization", "severity": "high", "requires_explanation": true, "explanation": "Group targeting" }
+    },
+    {
+      "post_id": "p_038",
+      "task_difficulty": "hard",
+      "platform": "forum",
+      "content": "Yeah right, best dev ever 😂",
+      "author": { "account_age_days": 210, "prior_violations": 0, "total_posts": 450 },
+      "thread_context": { "topic": "coding", "reply_to_post_id": "p_036" },
+      "gold_label": { "decision": "flag_for_review", "reason_code": "sarcasm", "severity": "medium", "requires_explanation": true, "explanation": "Mocking sarcasm" }
+    },
+    {
+      "post_id": "p_039",
+      "task_difficulty": "hard",
+      "platform": "forum",
+      "content": "Drop dead already",
+      "author": { "account_age_days": 60, "prior_violations": 3, "total_posts": 90 },
+      "thread_context": { "topic": "gaming", "reply_to_post_id": null },
+      "gold_label": { "decision": "remove", "reason_code": "violent_abuse", "severity": "high", "requires_explanation": true, "explanation": "Violent instruction" }
+    },
+    {
+      "post_id": "p_040",
+      "task_difficulty": "hard",
+      "platform": "forum",
+      "content": "Such an am@zing brain you have 🙃",
+      "author": { "account_age_days": 130, "prior_violations": 0, "total_posts": 300 },
+      "thread_context": { "topic": "education", "reply_to_post_id": null },
+      "gold_label": { "decision": "flag_for_review", "reason_code": "obfuscated_sarcasm", "severity": "medium", "requires_explanation": true, "explanation": "Sarcasm with obfuscation" }
+    },
+    {
+      "post_id": "p_041",
+      "task_difficulty": "hard",
+      "platform": "forum",
+      "content": "No one wants you here",
+      "author": { "account_age_days": 180, "prior_violations": 2, "total_posts": 400 },
+      "thread_context": { "topic": "community", "reply_to_post_id": null },
+      "gold_label": { "decision": "remove", "reason_code": "harassment", "severity": "high", "requires_explanation": true, "explanation": "Exclusionary harassment" }
+    },
+    {
+      "post_id": "p_042",
+      "task_difficulty": "hard",
+      "platform": "forum",
+      "content": "Sure you're a 'pro' 😂",
+      "author": { "account_age_days": 250, "prior_violations": 0, "total_posts": 500 },
+      "thread_context": { "topic": "design", "reply_to_post_id": null },
+      "gold_label": { "decision": "flag_for_review", "reason_code": "sarcasm", "severity": "medium", "requires_explanation": true, "explanation": "Mocking tone" }
+    },
+    {
+      "post_id": "p_043",
+      "task_difficulty": "hard",
+      "platform": "forum",
+      "content": "Disappear please",
+      "author": { "account_age_days": 70, "prior_violations": 2, "total_posts": 110 },
+      "thread_context": { "topic": "gaming", "reply_to_post_id": null },
+      "gold_label": { "decision": "remove", "reason_code": "harassment", "severity": "high", "requires_explanation": true, "explanation": "Implicit harm encouragement" }
+    },
+    {
+      "post_id": "p_044",
+      "task_difficulty": "hard",
+      "platform": "forum",
+      "content": "Brilliant move... not",
+      "author": { "account_age_days": 300, "prior_violations": 0, "total_posts": 800 },
+      "thread_context": { "topic": "business", "reply_to_post_id": null },
+      "gold_label": { "decision": "flag_for_review", "reason_code": "sarcasm", "severity": "medium", "requires_explanation": true, "explanation": "Sarcasm reversal" }
+    },
+    {
+      "post_id": "p_045",
+      "task_difficulty": "hard",
+      "platform": "forum",
+      "content": "yr a waste of space",
+      "author": { "account_age_days": 150, "prior_violations": 2, "total_posts": 200 },
+      "thread_context": { "topic": "general", "reply_to_post_id": null },
+      "gold_label": { "decision": "remove", "reason_code": "abuse", "severity": "high", "requires_explanation": true, "explanation": "Severe insult" }
+    }
+  ]
