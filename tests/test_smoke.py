@@ -22,7 +22,7 @@ def test_task1_basic(approve_clean):
     assert obs.post.post_id
     _next_obs, reward, done, info = env.step(approve_clean)
     assert done is True
-    assert 0.0 <= reward.value <= 1.0
+    assert 0.0 < reward.value < 1.0
     assert "post_id" in info
 
 
@@ -32,7 +32,7 @@ def test_task2_full_run(approve_clean):
     done = False
     for _ in range(8):
         _obs, reward, done, _info = env.step(approve_clean)
-        assert 0.0 <= reward.value <= 1.0
+        assert 0.0 < reward.value < 1.0
     assert done is True
 
 

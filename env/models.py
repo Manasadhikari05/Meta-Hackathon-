@@ -37,7 +37,7 @@ class ModerationAction(BaseModel):
     explanation: Optional[str] = None
 
 class ModerationReward(BaseModel):
-    value: float = Field(ge=0.0, le=1.0)
+    value: float = Field(gt=0.0, lt=1.0)
     breakdown: dict
     done: bool
     info: dict

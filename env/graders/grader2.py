@@ -49,4 +49,4 @@ def grade(action, gold) -> float:
     else:
         score += 0.10 * (1.0 - conf)
 
-    return round(min(1.0, max(0.0, score)), 4)
+    return round(min(0.99, max(0.01, score)), 4)

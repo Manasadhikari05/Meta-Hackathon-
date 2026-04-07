@@ -51,4 +51,4 @@ def grade(action, gold) -> float:
         if gold_reason in _SERIOUS_REASONS:
             score = max(0.0, score - 0.20)
 
-    return round(min(1.0, max(0.0, score)), 4)
+    return round(min(0.99, max(0.01, score)), 4)
