@@ -26,6 +26,7 @@ class Task3:
         self._idx += 1
         done = self._idx >= self.MAX_STEPS
         avg = sum(self._scores) / len(self._scores)
+        avg = min(0.95, max(0.05, avg))
         return avg, done, {"completed": self._idx}
 
     def current_observation(self):

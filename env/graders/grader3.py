@@ -11,13 +11,13 @@ def grade(action, gold) -> float:
     score = base_grade(action, gold) * 0.70
 
     if not gold.get("requires_explanation", False):
-        return round(min(0.9999, max(0.0001, score)), 4)
+        return round(min(0.95, max(0.05, score)), 4)
 
     explanation = getattr(action, "explanation", "") or ""
     gold_explanation = gold.get("explanation", "") or ""
 
     if not explanation.strip():
-        return round(min(0.9999, max(0.0001, score)), 4)
+        return round(min(0.95, max(0.05, score)), 4)
 
     kw_score = _keyword_overlap(explanation, gold_explanation)
     sim_score = SequenceMatcher(
@@ -27,7 +27,7 @@ def grade(action, gold) -> float:
     ).ratio()
 
     score += 0.30 * (0.5 * kw_score + 0.5 * sim_score)
-    return round(min(0.9999, max(0.0001, score)), 4)
+    return round(min(0.95, max(0.05, score)), 4)
 
 
 def _keyword_overlap(pred: str, gold: str) -> float:
