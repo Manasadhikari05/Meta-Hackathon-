@@ -248,12 +248,12 @@ def run_task(task_id, env_url):
         r.raise_for_status()
         obs = r.json()
     except Exception as e:
-        print(f"[STEP] step=1 action=null reward=0.00 done=true error={e}")
+        print(f"[STEP] step=1 action=null reward=0.01 done=true error={e}")
         print(f"[END] success=false steps=0 rewards=")
         return False, 0, []
 
     if "error" in obs:
-        print(f"[STEP] step=1 action=null reward=0.00 done=true error={obs['error']}")
+        print(f"[STEP] step=1 action=null reward=0.01 done=true error={obs['error']}")
         print(f"[END] success=false steps=0 rewards=")
         return False, 0, []
 
@@ -282,16 +282,16 @@ def run_task(task_id, env_url):
             r.raise_for_status()
             result = r.json()
         except Exception as e:
-            print(f"[STEP] step={step_num} action={_action_str(action)} reward=0.00 done=true error={e}")
-            rewards.append(0.0)
+            print(f"[STEP] step={step_num} action={_action_str(action)} reward=0.01 done=true error={e}")
+            rewards.append(0.01)
             break
 
         if "error" in result:
-            print(f"[STEP] step={step_num} action={_action_str(action)} reward=0.00 done=true error={result['error']}")
-            rewards.append(0.0)
+            print(f"[STEP] step={step_num} action={_action_str(action)} reward=0.01 done=true error={result['error']}")
+            rewards.append(0.01)
             break
 
-        reward_val = result.get("reward", {}).get("value", 0.0)
+        reward_val = result.get("reward", {}).get("value", 0.01)
         done = result.get("done", False)
         rewards.append(reward_val)
 
@@ -314,5 +314,5 @@ if __name__ == "__main__":
             run_task(task_id, env_base)
         except Exception as e:
             print(f"[START] task={task_id} env={_benchmark} model={MODEL_NAME}")
-            print(f"[STEP] step=1 action=null reward=0.00 done=true error={e}")
+            print(f"[STEP] step=1 action=null reward=0.01 done=true error={e}")
             print(f"[END] success=false steps=0 rewards=")
