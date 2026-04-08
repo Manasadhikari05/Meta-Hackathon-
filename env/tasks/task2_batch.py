@@ -21,6 +21,8 @@ class Task2:
 
         post = self._posts[self._index]
         r = grade(action, post["gold_label"])
+        r = float(r)
+        r = min(0.999, max(0.001, r))
         self._rewards.append(r)
         self._index += 1
         done = self._index >= self.MAX_STEPS
