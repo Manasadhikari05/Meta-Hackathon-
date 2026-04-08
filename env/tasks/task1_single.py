@@ -20,6 +20,8 @@ class Task1:
         from env.graders.grader1 import grade
 
         reward = grade(action, self._current["gold_label"])
+        reward = float(reward)
+        reward = min(0.999, max(0.001, reward))
         return reward, True, {"post_id": self._current["post_id"]}
 
     def current_observation(self):

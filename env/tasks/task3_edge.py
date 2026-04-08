@@ -26,6 +26,7 @@ class Task3:
         self._idx += 1
         done = self._idx >= self.MAX_STEPS
         avg = sum(self._scores) / len(self._scores)
+        avg = float(avg)
         avg = min(0.999, max(0.001, avg))
         return avg, done, {"completed": self._idx}
 
