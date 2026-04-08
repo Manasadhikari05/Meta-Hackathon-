@@ -292,16 +292,17 @@ def run_task(task_id, env_url):
             break
 
         reward_val = result.get("reward", {}).get("value", 0.01)
+        reward_val = min(0.999, max(0.001, float(reward_val)))
         done = result.get("done", False)
         rewards.append(reward_val)
 
-        print(f"[STEP] step={step_num} action={_action_str(action)} reward={reward_val:.2f} done={str(done).lower()} error=null")
+        print(f"[STEP] step={step_num} action={_action_str(action)} reward={reward_val:.4f} done={str(done).lower()} error=null")
 
         if done:
             break
         obs = result.get("observation", obs)
 
-    rewards_str = ",".join(f"{r:.2f}" for r in rewards)
+    rewards_str = ",".join(f"{r:.4f}" for r in rewards)
     print(f"[END] success=true steps={step_num} rewards={rewards_str}")
     return True, step_num, rewards
 
