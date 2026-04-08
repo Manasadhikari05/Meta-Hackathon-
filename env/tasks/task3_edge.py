@@ -27,13 +27,7 @@ class Task3:
         self._scores.append(point_score)
         self._idx += 1
         done = self._idx >= self.MAX_STEPS
-        if not self._scores:
-            score = 0.5
-        else:
-            score = sum(self._scores) / len(self._scores)
-        
-        score = min(0.999, max(0.001, float(score)))
-        return score, done, {"completed": self._idx}
+        return point_score, done, {"completed": self._idx}
 
     def current_observation(self):
         # after last step, just return the final post again

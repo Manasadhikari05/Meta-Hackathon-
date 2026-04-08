@@ -26,13 +26,7 @@ class Task2:
         self._rewards.append(r)
         self._index += 1
         done = self._index >= self.MAX_STEPS
-        if not self._rewards:
-            score = 0.5
-        else:
-            score = sum(self._rewards) / len(self._rewards)
-        
-        score = min(0.999, max(0.001, float(score)))
-        return score, done, {"completed": self._index}
+        return r, done, {"completed": self._index}
 
     def current_observation(self):
         idx = min(self._index, len(self._posts) - 1)
