@@ -21,16 +21,16 @@ class Task3:
         from env.graders.grader3 import grade
 
         post = self._posts[self._idx]
-        score = grade(action, post["gold_label"])
-        score = float(score)
-        score = min(0.999, max(0.001, score))
-        self._scores.append(score)
+        point_score = grade(action, post["gold_label"])
+        point_score = float(point_score)
+        point_score = min(0.999, max(0.001, point_score))
+        self._scores.append(point_score)
         self._idx += 1
         done = self._idx >= self.MAX_STEPS
-        avg = sum(self._scores) / len(self._scores)
-        avg = float(avg)
-        avg = min(0.999, max(0.001, avg))
-        return avg, done, {"completed": self._idx}
+        score = sum(self._scores) / len(self._scores)
+        score = float(score)
+        score = min(0.999, max(0.001, score))
+        return score, done, {"completed": self._idx}
 
     def current_observation(self):
         # after last step, just return the final post again

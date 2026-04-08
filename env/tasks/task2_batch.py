@@ -26,10 +26,10 @@ class Task2:
         self._rewards.append(r)
         self._index += 1
         done = self._index >= self.MAX_STEPS
-        avg = sum(self._rewards) / len(self._rewards)
-        avg = float(avg)
-        avg = min(0.999, max(0.001, avg))
-        return avg, done, {"completed": self._index}
+        score = sum(self._rewards) / len(self._rewards)
+        score = float(score)
+        score = min(0.999, max(0.001, score))
+        return score, done, {"completed": self._index}
 
     def current_observation(self):
         idx = min(self._index, len(self._posts) - 1)

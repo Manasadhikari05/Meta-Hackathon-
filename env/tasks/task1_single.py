@@ -19,10 +19,10 @@ class Task1:
     def step(self, action):
         from env.graders.grader1 import grade
 
-        reward = grade(action, self._current["gold_label"])
-        reward = float(reward)
-        reward = min(0.999, max(0.001, reward))
-        return reward, True, {"post_id": self._current["post_id"]}
+        score = grade(action, self._current["gold_label"])
+        score = float(score)
+        score = min(0.999, max(0.001, score))
+        return score, True, {"post_id": self._current["post_id"]}
 
     def current_observation(self):
         return self._build_obs(step=1)

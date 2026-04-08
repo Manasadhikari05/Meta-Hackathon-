@@ -38,5 +38,5 @@ def _keyword_overlap(pred: str, gold: str) -> float:
     gold_words = {w.strip(strip_chars).lower() for w in gold.split()
                   if len(w.strip(strip_chars)) > 2}
     if not gold_words:
-        return 0.0
+        return 0.001
     return len(pred_words & gold_words) / len(gold_words)
