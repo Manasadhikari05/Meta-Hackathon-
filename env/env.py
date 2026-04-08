@@ -1,6 +1,7 @@
 import random
 from typing import Tuple
 
+from env.graders._shared import _clamp
 from env.models import (
     ModerationAction,
     ModerationObservation,
@@ -64,7 +65,7 @@ class ContentModerationEnv:
         self._done = done
 
         value = float(raw_reward)
-        value = min(0.999, max(0.001, value))
+        value = _clamp(float(raw_reward))
         reward = ModerationReward(
             value=value,
             breakdown={"scalar": value},

@@ -1,4 +1,5 @@
 # task2 — batch of 8 medium-difficulty posts
+from env.graders._shared import _clamp
 from env.tasks.data import build_observation, load_posts
 
 TASK_ID = "task2"
@@ -22,7 +23,7 @@ class Task2:
         post = self._posts[self._index]
         r = grade(action, post["gold_label"])
         r = float(r)
-        r = min(0.999, max(0.001, r))
+        r = _clamp(float(r))
         self._rewards.append(r)
         self._index += 1
         done = self._index >= self.MAX_STEPS

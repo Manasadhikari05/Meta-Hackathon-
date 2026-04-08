@@ -1,4 +1,5 @@
 # task3 — 12 hard edge cases (sarcasm, obfuscation, etc)
+from env.graders._shared import _clamp
 from env.tasks.data import build_observation, load_posts
 
 TASK_ID = "task3"
@@ -23,7 +24,7 @@ class Task3:
         post = self._posts[self._idx]
         point_score = grade(action, post["gold_label"])
         point_score = float(point_score)
-        point_score = min(0.999, max(0.001, point_score))
+        point_score = _clamp(float(point_score))
         self._scores.append(point_score)
         self._idx += 1
         done = self._idx >= self.MAX_STEPS

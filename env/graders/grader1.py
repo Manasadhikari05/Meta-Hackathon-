@@ -4,6 +4,7 @@
 # Penalizes approving clearly harmful content.
 
 from env.graders._shared import (
+    _clamp,
     is_adjacent,
     normalize_decision,
     normalize_reason,
@@ -51,4 +52,13 @@ def grade(action, gold) -> float:
         if gold_reason in _SERIOUS_REASONS:
             score = max(0.0, score - 0.20)
 
-    return round(min(0.999, max(0.001, score)), 4)
+    return _clamp(round(score, 4))
+
+
+def _clamp(score: float) -> float:
+    """Ensure score is strictly within (0, 1) - not 0.0 or 1.0."""
+    if score <= 0.0:
+        return 0.001
+    if score >= 1.0:
+        return 0.999
+    return score

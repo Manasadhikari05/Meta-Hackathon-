@@ -56,3 +56,12 @@ def severity_diff(pred_sev: str, gold_sev: str) -> int:
     if a is None or b is None:
         return -1
     return abs(a - b)
+
+
+def _clamp(score: float) -> float:
+    """Ensure score is strictly within (0, 1) - not 0.0 or 1.0."""
+    if score <= 0.0:
+        return 0.001
+    if score >= 1.0:
+        return 0.999
+    return score

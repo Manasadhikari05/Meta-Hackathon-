@@ -4,6 +4,7 @@
 
 from difflib import SequenceMatcher
 
+from env.graders._shared import _clamp
 from env.graders.grader1 import grade as base_grade
 
 
@@ -11,13 +12,13 @@ def grade(action, gold) -> float:
     score = base_grade(action, gold) * 0.70
 
     if not gold.get("requires_explanation", False):
-        return round(min(0.999, max(0.001, score)), 4)
+        return _clamp(round(score, 4))
 
     explanation = getattr(action, "explanation", "") or ""
     gold_explanation = gold.get("explanation", "") or ""
 
     if not explanation.strip():
-        return round(min(0.999, max(0.001, score)), 4)
+        return _clamp(round(score, 4))
 
     kw_score = _keyword_overlap(explanation, gold_explanation)
     sim_score = SequenceMatcher(
@@ -27,7 +28,7 @@ def grade(action, gold) -> float:
     ).ratio()
 
     score += 0.30 * (0.5 * kw_score + 0.5 * sim_score)
-    return round(min(0.999, max(0.001, score)), 4)
+    return _clamp(round(score, 4))
 
 
 def _keyword_overlap(pred: str, gold: str) -> float:

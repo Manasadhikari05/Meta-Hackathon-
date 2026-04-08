@@ -1,4 +1,5 @@
 # task1 — single post, easy
+from env.graders._shared import _clamp
 from env.tasks.data import build_observation, load_posts
 
 TASK_ID = "task1"
@@ -21,7 +22,7 @@ class Task1:
 
         score = grade(action, self._current["gold_label"])
         score = float(score)
-        score = min(0.999, max(0.001, score))
+        score = _clamp(float(score))
         return score, True, {"post_id": self._current["post_id"]}
 
     def current_observation(self):

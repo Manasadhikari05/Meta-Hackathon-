@@ -4,6 +4,7 @@
 # More forgiving than task 1, also rewards calibrated confidence.
 
 from env.graders._shared import (
+    _clamp,
     is_adjacent,
     normalize_decision,
     normalize_reason,
@@ -49,4 +50,4 @@ def grade(action, gold) -> float:
     else:
         score += 0.10 * (1.0 - conf)
 
-    return round(min(0.999, max(0.001, score)), 4)
+    return _clamp(round(score, 4))
