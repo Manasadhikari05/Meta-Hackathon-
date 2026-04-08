@@ -64,7 +64,7 @@ class ContentModerationEnv:
         self._done = done
 
         value = float(raw_reward)
-        value = min(0.95, max(0.05, value))
+        value = min(0.999, max(0.001, value))
         reward = ModerationReward(
             value=value,
             breakdown={"scalar": value},
