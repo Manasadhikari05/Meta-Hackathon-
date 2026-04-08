@@ -249,12 +249,12 @@ def run_task(task_id, env_url):
         obs = r.json()
     except Exception as e:
         print(f"[STEP] step=1 action=null reward=0.01 done=true error={e}")
-        print(f"[END] success=false steps=0 rewards=")
+        print(f"[END] success=false steps=0 score=0.001")
         return False, 0, []
 
     if "error" in obs:
         print(f"[STEP] step=1 action=null reward=0.01 done=true error={obs['error']}")
-        print(f"[END] success=false steps=0 rewards=")
+        print(f"[END] success=false steps=0 score=0.001")
         return False, 0, []
 
     while step_num < 50:
@@ -302,8 +302,12 @@ def run_task(task_id, env_url):
             break
         obs = result.get("observation", obs)
 
-    rewards_str = ",".join(f"{r:.4f}" for r in rewards)
-    print(f"[END] success=true steps={step_num} rewards={rewards_str}")
+    if rewards:
+        final_score = sum(rewards) / len(rewards)
+    else:
+        final_score = 0.5
+    final_score = min(0.999, max(0.001, final_score))
+    print(f"[END] success=true steps={step_num} score={final_score:.4f}")
     return True, step_num, rewards
 
 
@@ -316,4 +320,4 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"[START] task={task_id} env={_benchmark} model={MODEL_NAME}")
             print(f"[STEP] step=1 action=null reward=0.01 done=true error={e}")
-            print(f"[END] success=false steps=0 rewards=")
+            print(f"[END] success=false steps=0 score=0.001")
