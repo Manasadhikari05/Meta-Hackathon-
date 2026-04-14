@@ -67,7 +67,7 @@ docker run -p 7860:7860 cm-openenv
 Set these in `.env`:
 
 - `API_BASE_URL` — LLM endpoint (e.g. `https://api.groq.com/openai/v1`)
-- `MODEL_NAME` — model to use (e.g. `llama-3.3-70b-versatile`)
+- `MODEL_NAME` — model to use (e.g. `llama-3.3-70b-versatile`) 
 - `HF_TOKEN` — API key
 
 ## Tests
