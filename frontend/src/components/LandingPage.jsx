@@ -226,9 +226,10 @@ export default function LandingPage({ onEnterApp }) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Header */}
-      <Header 
-        onAnalyzeModels={() => setShowBenchmarkModal(true)} 
-        onNavigate={() => {}} 
+      <Header
+        onAnalyzeModels={() => setShowBenchmarkModal(true)}
+        onNavigate={() => {}}
+        onEnterApp={onEnterApp}
       />
 
       {/* Hero Section */}
@@ -237,9 +238,24 @@ export default function LandingPage({ onEnterApp }) {
           <h1 className="text-6xl md:text-7xl font-normal font-serif leading-tight mb-8 text-gray-900">
             AI-Driven Content<br />Moderation Right Away
           </h1>
-          <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed mb-16">
+          <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed mb-10">
             From cropped AI conversion data, improve influencer info across all AI models—and protect your community with real-time content moderation
           </p>
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <button
+              onClick={onEnterApp}
+              className="inline-flex items-center gap-2 bg-gray-900 text-white px-8 py-3.5 rounded-2xl text-sm font-semibold hover:bg-gray-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+            >
+              Launch Dashboard
+              <ArrowRight className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setShowBenchmarkModal(true)}
+              className="inline-flex items-center gap-2 border border-gray-300 text-gray-700 px-6 py-3.5 rounded-2xl text-sm font-semibold hover:border-gray-400 hover:bg-gray-50 transition-all duration-200"
+            >
+              View Benchmarks
+            </button>
+          </div>
         </div>
 
           {/* Visual Showcase */}
