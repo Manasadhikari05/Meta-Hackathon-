@@ -44,10 +44,17 @@ export default function Dashboard({ onBack }) {
     setError(null)
     try {
       const result = await api.step(action)
-      const { observation: nextObs, reward, done } = result
+      const { observation: nextObs, reward, done, info } = result
 
       setLastReward(reward)
-      setHistory(h => [...h, { obs: observation, action, reward }])
+      setHistory(h => [...h, {
+        obs: observation,
+        action,
+        reward,
+        reasoning: info?.reasoning ?? null,
+        aiGraded: info?.ai_graded ?? false,
+        model: info?.model ?? null,
+      }])
 
       if (done) {
         setPhase('done')

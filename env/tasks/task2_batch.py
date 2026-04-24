@@ -18,16 +18,21 @@ class Task2:
         return self._build_obs()
 
     def step(self, action):
-        from env.graders.grader2 import grade
+        from env.graders.ai_grader import grade
 
         post = self._posts[self._index]
-        r = grade(action, post["gold_label"])
-        r = float(r)
+        r, reasoning = grade(action, post, task_id=TASK_ID)
         r = _clamp(float(r))
         self._rewards.append(r)
         self._index += 1
         done = self._index >= self.MAX_STEPS
-        return r, done, {"completed": self._index}
+        return r, done, {
+            "completed": self._index,
+            "post_id": post["post_id"],
+            "reasoning": reasoning,
+            "ai_graded": True,
+            "model": "llama3.2",
+        }
 
     def current_observation(self):
         idx = min(self._index, len(self._posts) - 1)

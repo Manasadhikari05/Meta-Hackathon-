@@ -18,12 +18,16 @@ class Task1:
         return self._build_obs(step=0)
 
     def step(self, action):
-        from env.graders.grader1 import grade
+        from env.graders.ai_grader import grade
 
-        score = grade(action, self._current["gold_label"])
-        score = float(score)
+        score, reasoning = grade(action, self._current, task_id=TASK_ID)
         score = _clamp(float(score))
-        return score, True, {"post_id": self._current["post_id"]}
+        return score, True, {
+            "post_id": self._current["post_id"],
+            "reasoning": reasoning,
+            "ai_graded": True,
+            "model": "llama3.2",
+        }
 
     def current_observation(self):
         return self._build_obs(step=1)

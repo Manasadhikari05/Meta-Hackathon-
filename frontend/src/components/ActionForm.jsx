@@ -52,10 +52,10 @@ const DEFAULT_FORM = {
 export default function ActionForm({ onSubmit, loading, taskId, disabled }) {
   const [form, setForm] = useState(DEFAULT_FORM)
 
-  const needsExplanation = taskId === 'task3'
+  const requiresExplanation = taskId === 'task3'
 
   const isValid = form.decision && form.reason_code && form.severity &&
-    (!needsExplanation || form.explanation.trim().length > 0)
+    (!requiresExplanation || form.explanation.trim().length > 0)
 
   const set = (key, val) => setForm(f => ({ ...f, [key]: val }))
 
@@ -183,28 +183,35 @@ export default function ActionForm({ onSubmit, loading, taskId, disabled }) {
         </div>
       </div>
 
-      {/* Explanation — task3 only */}
-      {needsExplanation && (
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs text-zinc-500">Explanation</p>
-            <span className="text-[10px] text-rose-400 font-semibold">Required for task3</span>
-          </div>
-          <textarea
-            rows={2}
-            disabled={disabled}
-            value={form.explanation}
-            onChange={e => set('explanation', e.target.value)}
-            placeholder="One sentence explaining your decision…"
-            className="
-              w-full bg-zinc-800/60 border border-zinc-700 rounded-xl px-4 py-3
-              text-sm text-zinc-200 placeholder-zinc-600 resize-none
-              focus:outline-none focus:border-indigo-500 transition-colors
-              disabled:opacity-40
-            "
-          />
+      {/* Explanation / Note — always shown, required for task3 */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs text-zinc-500">
+            {requiresExplanation ? 'Explanation' : 'Your Note'}
+          </p>
+          {requiresExplanation
+            ? <span className="text-[10px] text-rose-400 font-semibold">Required · scored by AI</span>
+            : <span className="text-[10px] text-zinc-600">Optional · shown in history</span>
+          }
         </div>
-      )}
+        <textarea
+          rows={2}
+          disabled={disabled}
+          value={form.explanation}
+          onChange={e => set('explanation', e.target.value)}
+          placeholder={
+            requiresExplanation
+              ? 'Why is this harmful? Identify the pattern (sarcasm, obfuscation, etc.)…'
+              : 'Add a note about this decision — shown alongside the AI verdict…'
+          }
+          className="
+            w-full bg-zinc-800/60 border border-zinc-700 rounded-xl px-4 py-3
+            text-sm text-zinc-200 placeholder-zinc-600 resize-none
+            focus:outline-none focus:border-indigo-500 transition-colors
+            disabled:opacity-40
+          "
+        />
+      </div>
 
       {/* Submit */}
       <button

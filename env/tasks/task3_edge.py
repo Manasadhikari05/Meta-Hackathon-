@@ -19,16 +19,21 @@ class Task3:
         return self._build_obs()
 
     def step(self, action):
-        from env.graders.grader3 import grade
+        from env.graders.ai_grader import grade
 
         post = self._posts[self._idx]
-        point_score = grade(action, post["gold_label"])
-        point_score = float(point_score)
+        point_score, reasoning = grade(action, post, task_id=TASK_ID)
         point_score = _clamp(float(point_score))
         self._scores.append(point_score)
         self._idx += 1
         done = self._idx >= self.MAX_STEPS
-        return point_score, done, {"completed": self._idx}
+        return point_score, done, {
+            "completed": self._idx,
+            "post_id": post["post_id"],
+            "reasoning": reasoning,
+            "ai_graded": True,
+            "model": "llama3.2",
+        }
 
     def current_observation(self):
         # after last step, just return the final post again
