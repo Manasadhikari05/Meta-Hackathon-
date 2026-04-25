@@ -12,7 +12,7 @@ import requests
 from dotenv import load_dotenv
 from openai import OpenAI
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
@@ -34,7 +34,13 @@ if USE_LOCAL_LLM:
         "device_map": device_map,
     }
     if torch.cuda.is_available():
-        model_kwargs["load_in_8bit"] = True
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_compute_dtype=torch.float16,
+            bnb_4bit_use_double_quant=True,
+            bnb_4bit_quant_type="nf4"
+        )
+        model_kwargs["quantization_config"] = bnb_config
     else:
         model_kwargs["torch_dtype"] = torch.float32
 
