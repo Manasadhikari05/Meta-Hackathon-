@@ -114,7 +114,7 @@ const LLMLogos = () => (
   </>
 );
 
-export default function LandingPage({ onEnterApp, onEnterDashboard }) {
+export default function LandingPage({ onEnterApp, onEnterDashboard, onEnterTraining }) {
   const [showBenchmarkModal, setShowBenchmarkModal] = useState(false);
   const [activeFeature, setActiveFeature] = useState(null);
 
@@ -233,6 +233,7 @@ export default function LandingPage({ onEnterApp, onEnterDashboard }) {
         }}
         onEnterApp={onEnterApp}
         onEnterDashboard={onEnterDashboard}
+        onEnterTraining={onEnterTraining}
       />
 
       {/* Hero Section */}
@@ -257,6 +258,12 @@ export default function LandingPage({ onEnterApp, onEnterDashboard }) {
               className="inline-flex items-center gap-2 border border-gray-300 text-gray-700 px-6 py-3.5 rounded-2xl text-sm font-semibold hover:border-gray-400 hover:bg-gray-50 transition-all duration-200"
             >
               Try AI Moderator
+            </button>
+            <button
+              onClick={onEnterTraining}
+              className="inline-flex items-center gap-2 border border-indigo-300 text-indigo-700 px-6 py-3.5 rounded-2xl text-sm font-semibold hover:border-indigo-400 hover:bg-indigo-50 transition-all duration-200"
+            >
+              TRL Training Demo
             </button>
           </div>
         </div>
@@ -343,8 +350,8 @@ export default function LandingPage({ onEnterApp, onEnterDashboard }) {
                        <div className="px-3 py-2.5 flex items-center justify-between">
                          <div className="flex items-center gap-2.5">
                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-purple-600 p-[2px]">
-                             <img 
-                               src="/0eb167e800ba429a75bfc5695fc0cabc.jpg" 
+                              <img
+                                src="/avatar-1.svg"
                                alt="profile"
                                className="w-full h-full rounded-full object-cover border-2 border-white"
                              />
@@ -368,8 +375,8 @@ export default function LandingPage({ onEnterApp, onEnterDashboard }) {
                       </div>
                        {/* Real image */}
                        <div className="relative aspect-square bg-gradient-to-br from-rose-100 via-orange-100 to-amber-100">
-                         <img 
-                           src="/3b401f7783072ea2e41234ca3adce9c0.jpg" 
+                         <img
+                           src="/photo-1.svg"
                            alt="Mountain sunset"
                            className="w-full h-full object-cover"
                            onLoad={() => console.log('Image 1 loaded successfully')}
@@ -403,8 +410,8 @@ export default function LandingPage({ onEnterApp, onEnterDashboard }) {
                        <div className="px-3 py-2.5 flex items-center justify-between">
                          <div className="flex items-center gap-2.5">
                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-400 to-orange-600 p-[2px]">
-                             <img 
-                               src="/21b700908abed0b8e70f8e6d929bcd6e.jpg" 
+                             <img
+                               src="/avatar-2.svg"
                                alt="profile"
                                className="w-full h-full rounded-full object-cover border-2 border-white"
                              />
@@ -427,8 +434,8 @@ export default function LandingPage({ onEnterApp, onEnterDashboard }) {
                         </div>
                       </div>
                       <div className="relative aspect-square bg-gray-100">
-                         <img 
-                           src="/624fb7997014751f0197cc0a9329194e.jpg" 
+                         <img
+                           src="/photo-2.svg"
                            alt="Content"
                            className="w-full h-full object-cover blur-xl"
                          />
@@ -452,8 +459,8 @@ export default function LandingPage({ onEnterApp, onEnterDashboard }) {
                        <div className="px-3 py-2.5 flex items-center justify-between">
                          <div className="flex items-center gap-2.5">
                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 p-[2px]">
-                             <img 
-                               src="/0eb167e800ba429a75bfc5695fc0cabc.jpg" 
+                             <img
+                               src="/avatar-1.svg"
                                alt="profile"
                                className="w-full h-full rounded-full object-cover border-2 border-white"
                              />
@@ -476,8 +483,8 @@ export default function LandingPage({ onEnterApp, onEnterDashboard }) {
                         </div>
                       </div>
                       <div className="relative aspect-square bg-gray-100">
-                         <img 
-                           src="/3b401f7783072ea2e41234ca3adce9c0.jpg" 
+                         <img
+                           src="/photo-1.svg"
                            alt="Beach"
                            className="w-full h-full object-cover"
                          />
