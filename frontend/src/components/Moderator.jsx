@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react'
-import { Shield, ChevronLeft, Sparkles, RotateCcw, CheckCircle2, XCircle, AlertCircle, ChevronDown, Bot, Star } from 'lucide-react'
+import { useState, useCallback, useEffect, useRef } from 'react'
+import { Shield, ChevronLeft, Sparkles, RotateCcw, CheckCircle2, XCircle, AlertCircle, ChevronDown, Bot, Star, Brain, Zap, Eye, Shield as ShieldIcon, AlertTriangle, CheckSquare } from 'lucide-react'
 import { api } from '../api/client'
 import AIVerdict from './AIVerdict'
 import RatingWidget from './RatingWidget'
@@ -19,6 +19,56 @@ const DEC_COLOR = {
   escalate: 'text-amber-400 bg-amber-500/10 border-amber-500/30',
 }
 const RATING_COLOR = (r) => r >= 8 ? 'text-emerald-400' : r >= 5 ? 'text-amber-400' : 'text-rose-400'
+
+// Thinking steps configuration for the AI analysis animation
+const THINKING_STEPS = [
+  { icon: Brain, text: 'Analyzing content intent...', delay: 800 },
+  { icon: Eye, text: 'Scanning for policy violations...', delay: 1200 },
+  { icon: ShieldIcon, text: 'Evaluating tone and context...', delay: 1500 },
+  { icon: AlertTriangle, text: 'Assessing severity level...', delay: 1000 },
+  { icon: CheckSquare, text: 'Finalizing moderation decision...', delay: 800 },
+]
+
+function ThinkingAnimation({ currentStep, isComplete }) {
+  return (
+    <div className="space-y-3">
+      {THINKING_STEPS.map((step, index) => {
+        const Icon = step.icon
+        const isActive = index === currentStep
+        const isCompleted = index < currentStep
+
+        return (
+          <div
+            key={index}
+            className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-500 ${
+              isActive
+                ? 'bg-indigo-500/10 border border-indigo-500/30 text-indigo-300'
+                : isCompleted
+                ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                : 'bg-zinc-800/50 border border-zinc-700/50 text-zinc-600'
+            }`}
+          >
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+              isActive ? 'bg-indigo-500/20' : isCompleted ? 'bg-emerald-500/20' : 'bg-zinc-700/50'
+            }`}>
+              {isCompleted ? (
+                <CheckSquare className="w-4 h-4" />
+              ) : (
+                <Icon className={`w-4 h-4 ${isActive ? 'animate-pulse' : ''}`} />
+              )}
+            </div>
+            <span className={`text-sm ${isActive ? 'font-medium' : ''}`}>
+              {step.text}
+            </span>
+            {isActive && (
+              <div className="ml-auto w-5 h-5 border-2 border-indigo-400/30 border-t-indigo-400 rounded-full animate-spin" />
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 function HistoryItem({ item }) {
   const [open, setOpen] = useState(false)
@@ -65,7 +115,7 @@ function HistoryItem({ item }) {
   )
 }
 
-// phase: 'input' | 'loading' | 'verdict' | 'submitting' | 'rated'
+// phase: 'input' | 'loading' | 'thinking' | 'verdict' | 'submitting' | 'rated'
 export default function Moderator({ onBack }) {
   const [phase,    setPhase]    = useState('input')
   const [content,  setContent]  = useState('')
@@ -74,11 +124,20 @@ export default function Moderator({ onBack }) {
   const [history,  setHistory]  = useState([])
   const [error,    setError]    = useState(null)
   const [lastRating, setLastRating] = useState(null)
+  const [thinkingStep, setThinkingStep] = useState(0)
+  const thinkingIntervalRef = useRef(null)
 
   const handleModerate = useCallback(async () => {
     if (!content.trim()) return
     setPhase('loading')
+    setThinkingStep(0)
     setError(null)
+
+    // Start thinking animation after a brief delay
+    setTimeout(() => {
+      setPhase('thinking')
+    }, 500)
+
     try {
       const result = await api.moderate(content.trim(), platform)
       setVerdict(result)
@@ -109,7 +168,37 @@ export default function Moderator({ onBack }) {
     setVerdict(null)
     setLastRating(null)
     setError(null)
+    setThinkingStep(0)
+    if (thinkingIntervalRef.current) {
+      clearInterval(thinkingIntervalRef.current)
+      thinkingIntervalRef.current = null
+    }
   }
+
+  // Thinking steps progression
+  useEffect(() => {
+    if (phase === 'thinking') {
+      let currentStep = 0
+      setThinkingStep(0)
+
+      thinkingIntervalRef.current = setInterval(() => {
+        currentStep += 1
+        setThinkingStep(currentStep)
+
+        if (currentStep >= THINKING_STEPS.length - 1) {
+          clearInterval(thinkingIntervalRef.current)
+          thinkingIntervalRef.current = null
+        }
+      }, 800) // Change step every 800ms
+    }
+
+    return () => {
+      if (thinkingIntervalRef.current) {
+        clearInterval(thinkingIntervalRef.current)
+        thinkingIntervalRef.current = null
+      }
+    }
+  }, [phase])
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col">
@@ -142,7 +231,7 @@ export default function Moderator({ onBack }) {
         )}
 
         {/* ── Input phase ───────────────────────────────── */}
-        {(phase === 'input' || phase === 'loading') && (
+        {phase === 'input' && (
           <div className="max-w-2xl mx-auto animate-slide-up">
             <div className="text-center mb-10">
               <p className="text-xs font-semibold tracking-[.2em] text-zinc-500 uppercase mb-3">AI Moderation</p>
@@ -158,7 +247,7 @@ export default function Moderator({ onBack }) {
                 value={content}
                 onChange={e => setContent(e.target.value)}
                 placeholder="Type a social media post, comment, or message…"
-                disabled={phase === 'loading'}
+                disabled={phase === 'loading' || phase === 'thinking'}
                 className="
                   w-full bg-zinc-800/50 border border-zinc-700 rounded-xl px-4 py-3
                   text-sm text-zinc-200 placeholder-zinc-600 resize-none
@@ -171,7 +260,7 @@ export default function Moderator({ onBack }) {
                 <select
                   value={platform}
                   onChange={e => setPlatform(e.target.value)}
-                  disabled={phase === 'loading'}
+                  disabled={phase === 'loading' || phase === 'thinking'}
                   className="
                     flex-1 bg-zinc-800/60 border border-zinc-700 rounded-xl px-3 py-2.5
                     text-sm text-zinc-300 focus:outline-none focus:border-indigo-500
@@ -185,7 +274,7 @@ export default function Moderator({ onBack }) {
 
                 <button
                   onClick={handleModerate}
-                  disabled={!content.trim() || phase === 'loading'}
+                  disabled={!content.trim() || phase === 'loading' || phase === 'thinking'}
                   className="
                     flex items-center gap-2 px-6 py-2.5 rounded-xl
                     bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm
@@ -193,11 +282,47 @@ export default function Moderator({ onBack }) {
                     shadow-[0_0_20px_rgba(99,102,241,.25)]
                   "
                 >
-                  {phase === 'loading'
-                    ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Analyzing…</>
-                    : <><Sparkles className="w-4 h-4" />Moderate</>
-                  }
+                  {(phase === 'loading' || phase === 'thinking') ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <><Sparkles className="w-4 h-4" /> Moderate</>
+                  )}
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Loading phase ─────────────────────────────── */}
+        {phase === 'loading' && (
+          <div className="max-w-2xl mx-auto animate-slide-up text-center">
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="w-16 h-16 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mb-6" />
+              <p className="text-zinc-400 text-sm">Initializing AI analysis...</p>
+            </div>
+          </div>
+        )}
+
+        {/* ── Thinking phase ────────────────────────────── */}
+        {phase === 'thinking' && (
+          <div className="max-w-2xl mx-auto animate-slide-up">
+            <div className="text-center mb-8">
+              <p className="text-xs font-semibold tracking-[.2em] text-zinc-500 uppercase mb-3">AI Analysis in Progress</p>
+              <h2 className="text-2xl font-bold text-zinc-100 mb-2">Thinking through your content</h2>
+              <p className="text-zinc-400 text-sm">Watch the AI analyze step by step</p>
+            </div>
+
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+              <ThinkingAnimation currentStep={thinkingStep} isComplete={false} />
+            </div>
+
+            <div className="mt-6 text-center">
+              <div className="inline-flex items-center gap-2 text-xs text-zinc-500">
+                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
+                Processing with GPT-4o
               </div>
             </div>
           </div>
