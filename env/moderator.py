@@ -28,7 +28,9 @@ SYSTEM_PROMPT = (
     "Read the post and respond with valid JSON only — no markdown, no extra text.\n\n"
     'Format: {"decision":"<approve|remove|escalate>","reason_code":"<clean|spam|hate_speech|'
     'harassment|misinformation|self_harm|violence|sexual_content>","severity":"<low|medium|high>",'
-    '"confidence":<0.0-1.0>,"explanation":"<one sentence plain English>"}'
+    '"confidence":<0.0-1.0>,"explanation":"<one sentence plain English>",'
+    '"reasoning_steps":["<step1>","<step2>","<step3>","<step4>","<step5>"]}'
+    '\n\nProvide exactly 5 short reasoning steps (5-10 words each) that show how you arrived at the decision.'
 )
 
 def _build_user_prompt(content: str, platform: str) -> str:
@@ -82,6 +84,13 @@ def moderate(content: str, platform: str = "social_media") -> dict:
     confidence = round(max(0.0, min(1.0, confidence)), 3)
 
     explanation = (result.get("explanation") or "").strip()
+    reasoning_steps = result.get("reasoning_steps", [])
+    # Ensure we have exactly 5 steps; pad or truncate as needed
+    if not isinstance(reasoning_steps, list):
+        reasoning_steps = []
+    while len(reasoning_steps) < 5:
+        reasoning_steps.append("Analyzing content...")
+    reasoning_steps = reasoning_steps[:5]
 
     return {
         "post_id":     str(uuid.uuid4())[:8],
@@ -92,5 +101,6 @@ def moderate(content: str, platform: str = "social_media") -> dict:
         "severity":    severity,
         "confidence":  confidence,
         "explanation": explanation,
+        "reasoning_steps": reasoning_steps,
         "model":       AI_MODEL,
     }

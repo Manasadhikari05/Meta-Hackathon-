@@ -20,20 +20,30 @@ const DEC_COLOR = {
 }
 const RATING_COLOR = (r) => r >= 8 ? 'text-emerald-400' : r >= 5 ? 'text-amber-400' : 'text-rose-400'
 
-// Thinking steps configuration for the AI analysis animation
-const THINKING_STEPS = [
-  { icon: Brain, text: 'Analyzing content intent...', delay: 800 },
-  { icon: Eye, text: 'Scanning for policy violations...', delay: 1200 },
-  { icon: ShieldIcon, text: 'Evaluating tone and context...', delay: 1500 },
-  { icon: AlertTriangle, text: 'Assessing severity level...', delay: 1000 },
-  { icon: CheckSquare, text: 'Finalizing moderation decision...', delay: 800 },
-]
+// Icon mapping for different reasoning step types
+const STEP_ICONS = {
+  default: Brain,
+  intent: Brain,
+  policy: Eye,
+  tone: ShieldIcon,
+  severity: AlertTriangle,
+  final: CheckSquare,
+}
 
-function ThinkingAnimation({ currentStep, isComplete }) {
+function ThinkingAnimation({ steps, currentStep }) {
   return (
     <div className="space-y-3">
-      {THINKING_STEPS.map((step, index) => {
-        const Icon = step.icon
+      {steps.map((stepText, index) => {
+        // Determine icon based on step content keywords
+        let iconType = 'default'
+        const text = stepText.toLowerCase()
+        if (text.includes('intent') || text.includes('analyzing')) iconType = 'intent'
+        else if (text.includes('policy') || text.includes('violation') || text.includes('scanning')) iconType = 'policy'
+        else if (text.includes('tone') || text.includes('context') || text.includes('evaluating')) iconType = 'tone'
+        else if (text.includes('severity') || text.includes('assessing')) iconType = 'severity'
+        else if (text.includes('final') || text.includes('decision') || text.includes('finalizing')) iconType = 'final'
+
+        const Icon = STEP_ICONS[iconType] || Brain
         const isActive = index === currentStep
         const isCompleted = index < currentStep
 
@@ -58,7 +68,7 @@ function ThinkingAnimation({ currentStep, isComplete }) {
               )}
             </div>
             <span className={`text-sm ${isActive ? 'font-medium' : ''}`}>
-              {step.text}
+              {stepText}
             </span>
             {isActive && (
               <div className="ml-auto w-5 h-5 border-2 border-indigo-400/30 border-t-indigo-400 rounded-full animate-spin" />
@@ -125,12 +135,14 @@ export default function Moderator({ onBack }) {
   const [error,    setError]    = useState(null)
   const [lastRating, setLastRating] = useState(null)
   const [thinkingStep, setThinkingStep] = useState(0)
+  const [reasoningSteps, setReasoningSteps] = useState([])
   const thinkingIntervalRef = useRef(null)
 
   const handleModerate = useCallback(async () => {
     if (!content.trim()) return
     setPhase('loading')
     setThinkingStep(0)
+    setReasoningSteps([])
     setError(null)
 
     // Start thinking animation after a brief delay
@@ -141,6 +153,10 @@ export default function Moderator({ onBack }) {
     try {
       const result = await api.moderate(content.trim(), platform)
       setVerdict(result)
+      // Store reasoning steps from the API response
+      if (result.reasoning_steps && Array.isArray(result.reasoning_steps)) {
+        setReasoningSteps(result.reasoning_steps)
+      }
       setPhase('verdict')
     } catch (e) {
       setError(e.message)
@@ -169,6 +185,7 @@ export default function Moderator({ onBack }) {
     setLastRating(null)
     setError(null)
     setThinkingStep(0)
+    setReasoningSteps([])
     if (thinkingIntervalRef.current) {
       clearInterval(thinkingIntervalRef.current)
       thinkingIntervalRef.current = null
@@ -178,17 +195,16 @@ export default function Moderator({ onBack }) {
   // Thinking steps progression
   useEffect(() => {
     if (phase === 'thinking') {
-      let currentStep = 0
       setThinkingStep(0)
 
       thinkingIntervalRef.current = setInterval(() => {
-        currentStep += 1
-        setThinkingStep(currentStep)
-
-        if (currentStep >= THINKING_STEPS.length - 1) {
-          clearInterval(thinkingIntervalRef.current)
-          thinkingIntervalRef.current = null
-        }
+        setThinkingStep(prev => {
+          const steps = reasoningSteps.length > 0 ? reasoningSteps : THINKING_STEPS
+          if (prev >= steps.length - 1) {
+            return prev // Stay on last step until API returns
+          }
+          return prev + 1
+        })
       }, 800) // Change step every 800ms
     }
 
@@ -198,7 +214,7 @@ export default function Moderator({ onBack }) {
         thinkingIntervalRef.current = null
       }
     }
-  }, [phase])
+  }, [phase, reasoningSteps])
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col">
@@ -316,7 +332,7 @@ export default function Moderator({ onBack }) {
             </div>
 
             <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-              <ThinkingAnimation currentStep={thinkingStep} isComplete={false} />
+              <ThinkingAnimation steps={reasoningSteps} currentStep={thinkingStep} />
             </div>
 
             <div className="mt-6 text-center">
