@@ -8,15 +8,20 @@ const DECISIONS = [
 ]
 
 const REASONS = [
-  { id: 'clean',         label: 'Clean' },
-  { id: 'spam',          label: 'Spam' },
-  { id: 'harassment',    label: 'Harassment' },
-  { id: 'hate_speech',   label: 'Hate Speech' },
-  { id: 'misinformation',label: 'Misinfo' },
-  { id: 'violence',      label: 'Violence' },
-  { id: 'self_harm',     label: 'Self Harm' },
-  { id: 'sexual_content',label: 'Sexual' },
-  { id: 'sarcasm',       label: 'Sarcasm' },
+  { id: 'clean',           label: 'Clean' },
+  { id: 'spam',            label: 'Spam' },
+  { id: 'harassment',      label: 'Harassment' },
+  { id: 'hate_speech',     label: 'Hate Speech' },
+  { id: 'misinformation',  label: 'Misinfo' },
+  { id: 'violence',        label: 'Violence' },
+  { id: 'self_harm',       label: 'Self Harm' },
+  { id: 'sexual_content',  label: 'Sexual' },
+  { id: 'sarcasm',         label: 'Sarcasm' },
+  { id: 'fraud',           label: 'Fraud' },
+  { id: 'scam',            label: 'Scam' },
+  { id: 'privacy',         label: 'Privacy' },
+  { id: 'extremism',       label: 'Extremism' },
+  { id: 'drugs',           label: 'Drugs' },
 ]
 
 const SEVERITIES = ['low', 'medium', 'high']
