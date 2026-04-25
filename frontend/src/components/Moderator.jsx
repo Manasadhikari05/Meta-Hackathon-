@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Shield, ChevronLeft, Sparkles, RotateCcw, CheckCircle2, XCircle, AlertCircle, ChevronDown, Bot, Star } from 'lucide-react'
 import { api } from '../api/client'
 import AIVerdict from './AIVerdict'
@@ -74,6 +74,7 @@ export default function Moderator({ onBack }) {
   const [history,  setHistory]  = useState([])
   const [error,    setError]    = useState(null)
   const [lastRating, setLastRating] = useState(null)
+  const [policyStats, setPolicyStats] = useState(null)
 
   const handleModerate = useCallback(async () => {
     if (!content.trim()) return
@@ -89,19 +90,33 @@ export default function Moderator({ onBack }) {
     }
   }, [content, platform])
 
-  const handleFeedback = useCallback(async (rating, comment) => {
+  useEffect(() => {
+    loadPolicyStats()
+  }, [loadPolicyStats])
+
+  const loadPolicyStats = useCallback(async () => {
+    try {
+      const stats = await api.policyStats()
+      setPolicyStats(stats)
+    } catch {
+      // no-op for degraded mode
+    }
+  }, [])
+
+  const handleFeedback = useCallback(async (rating, comment, desiredDecision) => {
     setPhase('submitting')
     try {
-      await api.feedback({ ...verdict, rating, comment: comment || null })
-      const entry = { ...verdict, rating, comment }
+      await api.feedback({ ...verdict, rating, comment: comment || null, desired_decision: desiredDecision })
+      const entry = { ...verdict, rating, comment, desired_decision: desiredDecision }
       setHistory(h => [entry, ...h])
       setLastRating(rating)
+      await loadPolicyStats()
       setPhase('rated')
     } catch (e) {
       setError(e.message)
       setPhase('verdict')
     }
-  }, [verdict])
+  }, [verdict, loadPolicyStats])
 
   const reset = () => {
     setPhase('input')
@@ -124,6 +139,11 @@ export default function Moderator({ onBack }) {
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-xs text-zinc-600">GPT live</span>
           </div>
+          {policyStats && (
+            <div className="ml-3 text-[11px] text-zinc-500">
+              rules: {policyStats.rules} · learned: {policyStats.rules_created}
+            </div>
+          )}
           <button
             onClick={onBack}
             className="ml-auto flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300 transition"

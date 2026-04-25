@@ -21,6 +21,8 @@ export const api = {
   feedback: (payload)       =>
     req('/feedback', { method: 'POST', body: JSON.stringify(payload) }),
   history:  ()              => req('/history'),
+  policyStats: ()           => req('/policy/stats'),
+  policyRules: (limit = 20) => req(`/policy/rules?limit=${limit}`),
 
   // OpenEnv RL task runner
   reset:    (taskId)        => req(`/reset?task_id=${taskId}`, { method: 'POST' }),

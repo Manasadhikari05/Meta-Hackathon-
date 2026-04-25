@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 
 from env.env import ContentModerationEnv
 from env.models import ModerationAction
+from env import policy_engine
 
 app = FastAPI(title="Content Moderation OpenEnv")
 
@@ -32,6 +33,7 @@ app.add_middleware(
 # ── RL environment (OpenEnv task runner) ──────────────────────────────────────
 _lock = threading.Lock()
 env   = ContentModerationEnv()
+policy_engine.load_state()
 
 
 @app.get("/")
@@ -130,6 +132,7 @@ class FeedbackRequest(BaseModel):
     model:       str
     rating:      int           = Field(..., ge=1, le=10)
     comment:     Optional[str] = None
+    desired_decision: Optional[str] = Field(default=None, pattern="^(approve|remove|escalate)$")
 
 
 _feedback_store: list[dict] = []
@@ -228,7 +231,8 @@ def moderate_content(req: ModerateRequest):
     """Have OpenAI moderate user-submitted content and return a full decision."""
     from env.moderator import moderate
     try:
-        return moderate(req.content, req.platform or "social_media")
+        raw = moderate(req.content, req.platform or "social_media")
+        return policy_engine.apply_policy(req.content, raw)
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"AI moderator unavailable: {e}")
 
@@ -236,14 +240,26 @@ def moderate_content(req: ModerateRequest):
 @app.post("/feedback")
 def submit_feedback(req: FeedbackRequest):
     """Store the user's 1–10 rating of the AI's moderation call."""
-    _feedback_store.append(req.model_dump())
-    return {"stored": True, "total": len(_feedback_store)}
+    payload = req.model_dump()
+    learn_result = policy_engine.learn_from_feedback(payload)
+    _feedback_store.append(payload)
+    return {"stored": True, "total": len(_feedback_store), **learn_result}
 
 
 @app.get("/history")
 def get_history():
     """Return all past moderation decisions with user ratings, newest first."""
     return list(reversed(_feedback_store))
+
+
+@app.get("/policy/stats")
+def policy_stats():
+    return policy_engine.get_stats()
+
+
+@app.get("/policy/rules")
+def policy_rules(limit: int = 50):
+    return {"rules": policy_engine.get_rules(limit=limit)}
 
 
 @app.post("/live-comments/start")

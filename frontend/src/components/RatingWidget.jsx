@@ -24,6 +24,7 @@ export default function RatingWidget({ decision, onSubmit, loading }) {
   const [rating,  setRating]  = useState(null)
   const [hovered, setHovered] = useState(null)
   const [comment, setComment] = useState('')
+  const [desiredDecision, setDesiredDecision] = useState(decision)
 
   const colors = DECISION_COLOR[decision] ?? DECISION_COLOR.escalate
   const display = hovered ?? rating
@@ -82,10 +83,31 @@ export default function RatingWidget({ decision, onSubmit, loading }) {
         "
       />
 
+      {/* correction signal for learning layer */}
+      <div className="space-y-2">
+        <p className="text-xs text-zinc-500">If AI was wrong, choose desired decision (used for learning)</p>
+        <div className="grid grid-cols-3 gap-2">
+          {['approve', 'remove', 'escalate'].map((d) => (
+            <button
+              key={d}
+              type="button"
+              onClick={() => setDesiredDecision(d)}
+              className={`text-xs py-2 rounded-lg border capitalize transition ${
+                desiredDecision === d
+                  ? 'border-indigo-500 bg-indigo-500/20 text-indigo-300'
+                  : 'border-zinc-700 text-zinc-400 hover:bg-zinc-800'
+              }`}
+            >
+              {d}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* submit */}
       <button
         disabled={!rating || loading}
-        onClick={() => onSubmit(rating, comment)}
+        onClick={() => onSubmit(rating, comment, desiredDecision)}
         className="
           w-full flex items-center justify-center gap-2 py-3 rounded-xl
           bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm
