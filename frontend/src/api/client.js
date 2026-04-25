@@ -36,4 +36,9 @@ export const api = {
     return req(`/posts${qs ? `?${qs}` : ''}`)
   },
   stats:    ()              => req('/stats'),
+
+  // Live Instagram-style moderation demo
+  liveStart: (payload)      => req('/live-comments/start', { method: 'POST', body: JSON.stringify(payload || {}) }),
+  livePoll:  (sessionId)    => req(`/live-comments/poll?session_id=${sessionId}`),
+  liveTeach: (payload)      => req('/live-comments/feedback', { method: 'POST', body: JSON.stringify(payload) }),
 }

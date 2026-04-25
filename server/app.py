@@ -1,6 +1,10 @@
 import json
 import sys
 import threading
+import time
+import uuid
+import random
+import re
 from pathlib import Path
 from typing import Optional
 
@@ -129,6 +133,94 @@ class FeedbackRequest(BaseModel):
 
 
 _feedback_store: list[dict] = []
+_live_sessions: dict[str, dict] = {}
+_live_comment_pool = [
+    "This tutorial is super helpful, thanks!",
+    "You are so dumb lol",
+    "Buy followers cheap, instant growth guaranteed.",
+    "I disagree with this take but good effort.",
+    "Everyone from that community is trash.",
+    "Can someone explain this part better?",
+    "Click this link for free crypto now!",
+    "Great breakdown, learned a lot.",
+    "This person should just disappear.",
+    "I love this reel so much.",
+]
+
+
+def _fallback_moderate(content: str) -> dict:
+    text = content.lower()
+    if any(k in text for k in ["buy followers", "free crypto", "click this link", "guaranteed"]):
+        return {
+            "decision": "remove",
+            "reason_code": "spam",
+            "severity": "high",
+            "confidence": 0.9,
+            "explanation": "Likely spam or scam content.",
+        }
+    if any(k in text for k in ["dumb", "trash", "disappear", "everyone from that community"]):
+        return {
+            "decision": "remove",
+            "reason_code": "harassment",
+            "severity": "high",
+            "confidence": 0.88,
+            "explanation": "Contains personal abuse or hateful phrasing.",
+        }
+    if any(k in text for k in ["disagree", "explain", "helpful", "learned", "love"]):
+        return {
+            "decision": "approve",
+            "reason_code": "clean",
+            "severity": "low",
+            "confidence": 0.8,
+            "explanation": "Safe or constructive comment.",
+        }
+    return {
+        "decision": "escalate",
+        "reason_code": "harassment",
+        "severity": "medium",
+        "confidence": 0.55,
+        "explanation": "Borderline content; review suggested.",
+    }
+
+
+def _apply_learning_rules(content: str, base: dict, rules: list[dict]) -> dict:
+    lowered = content.lower()
+    for rule in reversed(rules):
+        if rule["keyword"] in lowered:
+            base["decision"] = rule["decision"]
+            if rule["decision"] == "approve":
+                base["reason_code"] = "clean"
+                base["severity"] = "low"
+            elif rule["decision"] == "remove":
+                if base["reason_code"] == "clean":
+                    base["reason_code"] = "harassment"
+                base["severity"] = "high"
+            else:
+                base["severity"] = "medium"
+            base["explanation"] = f"Adjusted from feedback rule for '{rule['keyword']}'."
+            base["confidence"] = min(0.99, float(base.get("confidence", 0.5)) + 0.1)
+            break
+    return base
+
+
+def _extract_keyword(content: str) -> str:
+    tokens = re.findall(r"[a-zA-Z]{4,}", content.lower())
+    stop = {"this", "that", "with", "from", "have", "your", "just", "really", "super", "thanks"}
+    tokens = [t for t in tokens if t not in stop]
+    return tokens[0] if tokens else "comment"
+
+
+class LiveStartRequest(BaseModel):
+    post_url: Optional[str] = None
+    post_caption: Optional[str] = "Live moderation demo post"
+
+
+class LiveFeedbackRequest(BaseModel):
+    session_id: str
+    comment_id: str
+    desired_decision: str = Field(..., pattern="^(approve|remove|escalate)$")
+    rating: int = Field(..., ge=1, le=10)
+    note: Optional[str] = None
 
 
 @app.post("/moderate")
@@ -152,6 +244,95 @@ def submit_feedback(req: FeedbackRequest):
 def get_history():
     """Return all past moderation decisions with user ratings, newest first."""
     return list(reversed(_feedback_store))
+
+
+@app.post("/live-comments/start")
+def live_comments_start(req: LiveStartRequest):
+    session_id = str(uuid.uuid4())[:10]
+    _live_sessions[session_id] = {
+        "session_id": session_id,
+        "post_url": req.post_url or "https://instagram.com/p/demo",
+        "post_caption": req.post_caption or "Live moderation demo post",
+        "comments": [],
+        "rules": [],
+        "last_emit_at": 0.0,
+        "emitted": 0,
+    }
+    return {"session_id": session_id, "post_url": _live_sessions[session_id]["post_url"]}
+
+
+@app.get("/live-comments/poll")
+def live_comments_poll(session_id: str):
+    session = _live_sessions.get(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Unknown session_id")
+
+    now = time.time()
+    should_emit = (now - session["last_emit_at"]) >= 1.5 and session["emitted"] < 100
+    if should_emit:
+        raw = random.choice(_live_comment_pool)
+        comment_id = str(uuid.uuid4())[:8]
+        try:
+            from env.moderator import moderate
+            verdict = moderate(raw, "instagram")
+            base = {
+                "decision": verdict["decision"],
+                "reason_code": verdict["reason_code"],
+                "severity": verdict["severity"],
+                "confidence": verdict["confidence"],
+                "explanation": verdict["explanation"],
+                "model": verdict.get("model", "gpt-4o-mini"),
+            }
+        except Exception:
+            base = _fallback_moderate(raw)
+            base["model"] = "fallback-heuristic"
+
+        tuned = _apply_learning_rules(raw, base, session["rules"])
+        item = {
+            "comment_id": comment_id,
+            "content": raw,
+            "decision": tuned["decision"],
+            "reason_code": tuned["reason_code"],
+            "severity": tuned["severity"],
+            "confidence": tuned["confidence"],
+            "explanation": tuned["explanation"],
+            "model": tuned["model"],
+            "ts": int(now),
+        }
+        session["comments"].append(item)
+        session["last_emit_at"] = now
+        session["emitted"] += 1
+
+    return {
+        "session_id": session_id,
+        "comments": session["comments"][-30:],
+        "learning_rules": len(session["rules"]),
+        "emitted": session["emitted"],
+    }
+
+
+@app.post("/live-comments/feedback")
+def live_comments_feedback(req: LiveFeedbackRequest):
+    session = _live_sessions.get(req.session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Unknown session_id")
+
+    found = next((c for c in session["comments"] if c["comment_id"] == req.comment_id), None)
+    if not found:
+        raise HTTPException(status_code=404, detail="Unknown comment_id")
+
+    keyword = _extract_keyword(found["content"])
+    if req.rating <= 6 or found["decision"] != req.desired_decision:
+        session["rules"].append(
+            {
+                "keyword": keyword,
+                "decision": req.desired_decision,
+                "rating": req.rating,
+                "note": req.note,
+                "created_at": int(time.time()),
+            }
+        )
+    return {"stored": True, "keyword": keyword, "rules_total": len(session["rules"])}
 
 
 def main():

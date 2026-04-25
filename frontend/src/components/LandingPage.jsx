@@ -114,7 +114,7 @@ const LLMLogos = () => (
   </>
 );
 
-export default function LandingPage({ onEnterApp, onEnterDashboard, onEnterTraining }) {
+export default function LandingPage({ onEnterApp, onEnterDashboard, onEnterTraining, onEnterInstagramLive }) {
   const [showBenchmarkModal, setShowBenchmarkModal] = useState(false);
   const [activeFeature, setActiveFeature] = useState(null);
 
@@ -234,6 +234,7 @@ export default function LandingPage({ onEnterApp, onEnterDashboard, onEnterTrain
         onEnterApp={onEnterApp}
         onEnterDashboard={onEnterDashboard}
         onEnterTraining={onEnterTraining}
+        onEnterInstagramLive={onEnterInstagramLive}
       />
 
       {/* Hero Section */}
@@ -264,6 +265,12 @@ export default function LandingPage({ onEnterApp, onEnterDashboard, onEnterTrain
               className="inline-flex items-center gap-2 border border-indigo-300 text-indigo-700 px-6 py-3.5 rounded-2xl text-sm font-semibold hover:border-indigo-400 hover:bg-indigo-50 transition-all duration-200"
             >
               TRL Training Demo
+            </button>
+            <button
+              onClick={onEnterInstagramLive}
+              className="inline-flex items-center gap-2 border border-pink-300 text-pink-700 px-6 py-3.5 rounded-2xl text-sm font-semibold hover:border-pink-400 hover:bg-pink-50 transition-all duration-200"
+            >
+              Instagram Live
             </button>
           </div>
         </div>

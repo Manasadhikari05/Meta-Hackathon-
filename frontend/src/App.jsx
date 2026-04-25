@@ -3,6 +3,7 @@ import LandingPage from './components/LandingPage'
 import Moderator from './components/Moderator'
 import Dashboard from './components/Dashboard'
 import TrainingDemo from './components/TrainingDemo'
+import InstagramLive from './components/InstagramLive'
 
 export default function App() {
   const [view, setView] = useState('landing')
@@ -16,11 +17,15 @@ export default function App() {
   if (view === 'training') {
     return <TrainingDemo onBack={() => setView('landing')} />
   }
+  if (view === 'instagram-live') {
+    return <InstagramLive onBack={() => setView('landing')} />
+  }
   return (
     <LandingPage
       onEnterApp={() => setView('moderator')}
       onEnterDashboard={() => setView('dashboard')}
       onEnterTraining={() => setView('training')}
+      onEnterInstagramLive={() => setView('instagram-live')}
     />
   )
 }
