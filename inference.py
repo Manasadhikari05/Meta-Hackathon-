@@ -16,10 +16,10 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
-USE_LOCAL_LLM = os.getenv("USE_LOCAL_LLM", "true").lower() == "true"
-HF_MODEL_ID = os.getenv("HF_MODEL_ID", "mistralai/Mistral-7B-Instruct-v0.2")
+_local_str = str(os.getenv("USE_LOCAL_LLM", "true")).strip().strip('\'"').lower()
+USE_LOCAL_LLM = _local_str in ["true", "1", "yes", "y"]
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+HF_MODEL_ID = os.getenv("HF_MODEL_ID", "mistralai/Mistral-7B-Instruct-v0.2")
 MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
 
 _benchmark = "content-moderation-openenv"
@@ -48,6 +48,7 @@ if USE_LOCAL_LLM:
     client = None
 else:
     print(f"Initializing Cloud OpenAI Model: {MODEL_NAME}")
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     if not OPENAI_API_KEY:
         sys.exit("ERROR: Set OPENAI_API_KEY environment variable")
     client = OpenAI(api_key=OPENAI_API_KEY)
