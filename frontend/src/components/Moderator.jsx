@@ -146,6 +146,7 @@ export default function Moderator({ onBack }) {
   const [thinkingStep, setThinkingStep] = useState(0)
   const [reasoningSteps, setReasoningSteps] = useState([])
   const [thinkingSummary, setThinkingSummary] = useState('')
+  const [detailedReasoning, setDetailedReasoning] = useState('')
   const thinkingIntervalRef = useRef(null)
 
   const handleModerate = useCallback(async () => {
@@ -154,6 +155,7 @@ export default function Moderator({ onBack }) {
     setThinkingStep(0)
     setReasoningSteps([])
     setThinkingSummary('')
+    setDetailedReasoning('')
     setError(null)
 
     // Start thinking animation after a brief delay
@@ -164,12 +166,15 @@ export default function Moderator({ onBack }) {
     try {
       const result = await api.moderate(content.trim(), platform)
       setVerdict(result)
-      // Store reasoning steps and summary from the API response
+      // Store reasoning data from the API response
       if (result.reasoning_steps && Array.isArray(result.reasoning_steps)) {
         setReasoningSteps(result.reasoning_steps)
       }
       if (result.thinking_summary) {
         setThinkingSummary(result.thinking_summary)
+      }
+      if (result.detailed_reasoning) {
+        setDetailedReasoning(result.detailed_reasoning)
       }
       setPhase('verdict')
     } catch (e) {
@@ -201,6 +206,7 @@ export default function Moderator({ onBack }) {
     setThinkingStep(0)
     setReasoningSteps([])
     setThinkingSummary('')
+    setDetailedReasoning('')
     if (thinkingIntervalRef.current) {
       clearInterval(thinkingIntervalRef.current)
       thinkingIntervalRef.current = null
@@ -374,6 +380,18 @@ export default function Moderator({ onBack }) {
                 <div className="bg-gradient-to-r from-indigo-900/30 to-purple-900/30 border border-indigo-500/30 rounded-2xl p-5">
                   <p className="text-zinc-200 text-sm leading-relaxed italic">
                     "{thinkingSummary}"
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Detailed reasoning — full chain of thought */}
+            {detailedReasoning && (
+              <div className="mb-6">
+                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">Detailed Analysis</p>
+                <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-5">
+                  <p className="text-zinc-300 text-sm leading-relaxed whitespace-pre-line">
+                    {detailedReasoning}
                   </p>
                 </div>
               </div>
