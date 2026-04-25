@@ -201,20 +201,25 @@ export default function Moderator({ onBack }) {
     }
   }
 
-  // Thinking steps progression
+  // Thinking steps progression — continues through verdict until all steps shown
   useEffect(() => {
-    if (phase === 'thinking') {
-      setThinkingStep(0)
+    if (phase === 'thinking' || phase === 'verdict') {
+      // Only reset if we just entered thinking phase
+      if (phase === 'thinking') {
+        setThinkingStep(0)
+      }
 
       thinkingIntervalRef.current = setInterval(() => {
         setThinkingStep(prev => {
           const steps = reasoningSteps.length > 0 ? reasoningSteps : FALLBACK_STEPS
           if (prev >= steps.length - 1) {
-            return prev // Stay on last step until API returns
+            clearInterval(thinkingIntervalRef.current)
+            thinkingIntervalRef.current = null
+            return prev
           }
           return prev + 1
         })
-      }, 800) // Change step every 800ms
+      }, 800)
     }
 
     return () => {
@@ -355,37 +360,93 @@ export default function Moderator({ onBack }) {
 
         {/* ── Verdict + rating phase ────────────────────── */}
         {(phase === 'verdict' || phase === 'submitting') && verdict && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-slide-up">
-            {/* Left — the post */}
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">Your Content</p>
-              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 mb-4">
-                <p className="text-zinc-200 text-sm leading-relaxed whitespace-pre-wrap">"{verdict.content}"</p>
-                <div className="mt-3 pt-3 border-t border-zinc-800 flex items-center gap-2">
-                  <span className="text-xs text-zinc-600">Platform:</span>
-                  <span className="text-xs text-zinc-400 capitalize">{verdict.platform?.replace(/_/g, ' ')}</span>
+          <div className="max-w-4xl mx-auto animate-slide-up">
+            {/* Reasoning steps — always shown on verdict */}
+            {reasoningSteps.length > 0 && (
+              <div className="mb-8">
+                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-4">AI Reasoning Process</p>
+                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+                  <div className="space-y-3">
+                    {reasoningSteps.map((stepText, index) => {
+                      // Determine icon based on step content keywords
+                      let iconType = 'default'
+                      const text = stepText.toLowerCase()
+                      if (text.includes('intent') || text.includes('analyzing')) iconType = 'intent'
+                      else if (text.includes('policy') || text.includes('violation') || text.includes('scanning')) iconType = 'policy'
+                      else if (text.includes('tone') || text.includes('context') || text.includes('evaluating')) iconType = 'tone'
+                      else if (text.includes('severity') || text.includes('assessing')) iconType = 'severity'
+                      else if (text.includes('final') || text.includes('decision') || text.includes('finalizing')) iconType = 'final'
+
+                      const Icon = STEP_ICONS[iconType] || Brain
+                      const isActive = index === thinkingStep
+                      const isCompleted = index < thinkingStep
+
+                      return (
+                        <div
+                          key={index}
+                          className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-500 ${
+                            isActive
+                              ? 'bg-indigo-500/10 border border-indigo-500/30 text-indigo-300'
+                              : isCompleted
+                              ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                              : 'bg-zinc-800/50 border border-zinc-700/50 text-zinc-600'
+                          }`}
+                        >
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                            isActive ? 'bg-indigo-500/20' : isCompleted ? 'bg-emerald-500/20' : 'bg-zinc-700/50'
+                          }`}>
+                            {isCompleted ? (
+                              <CheckSquare className="w-4 h-4" />
+                            ) : (
+                              <Icon className={`w-4 h-4 ${isActive ? 'animate-pulse' : ''}`} />
+                            )}
+                          </div>
+                          <span className={`text-sm ${isActive ? 'font-medium' : ''}`}>
+                            {stepText}
+                          </span>
+                          {isActive && (
+                            <div className="ml-auto w-5 h-5 border-2 border-indigo-400/30 border-t-indigo-400 rounded-full animate-spin" />
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               </div>
-              <button
-                onClick={reset}
-                className="flex items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-400 transition"
-              >
-                <RotateCcw className="w-3.5 h-3.5" /> Try different content
-              </button>
-            </div>
+            )}
 
-            {/* Right — AI verdict + rating */}
-            <div className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Left — the post */}
               <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">AI Verdict</p>
-                <AIVerdict verdict={verdict} />
+                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">Your Content</p>
+                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 mb-4">
+                  <p className="text-zinc-200 text-sm leading-relaxed whitespace-pre-wrap">"{verdict.content}"</p>
+                  <div className="mt-3 pt-3 border-t border-zinc-800 flex items-center gap-2">
+                    <span className="text-xs text-zinc-600">Platform:</span>
+                    <span className="text-xs text-zinc-400 capitalize">{verdict.platform?.replace(/_/g, ' ')}</span>
+                  </div>
+                </div>
+                <button
+                  onClick={reset}
+                  className="flex items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-400 transition"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" /> Try different content
+                </button>
               </div>
-              <div>
-                <RatingWidget
-                  decision={verdict.decision}
-                  onSubmit={handleFeedback}
-                  loading={phase === 'submitting'}
-                />
+
+              {/* Right — AI verdict + rating */}
+              <div className="space-y-5">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">AI Verdict</p>
+                  <AIVerdict verdict={verdict} />
+                </div>
+                <div>
+                  <RatingWidget
+                    decision={verdict.decision}
+                    onSubmit={handleFeedback}
+                    loading={phase === 'submitting'}
+                  />
+                </div>
               </div>
             </div>
           </div>
