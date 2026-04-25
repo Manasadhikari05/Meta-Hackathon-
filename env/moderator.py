@@ -29,8 +29,9 @@ SYSTEM_PROMPT = (
     'Format: {"decision":"<approve|remove|escalate>","reason_code":"<clean|spam|hate_speech|'
     'harassment|misinformation|self_harm|violence|sexual_content>","severity":"<low|medium|high>",'
     '"confidence":<0.0-1.0>,"explanation":"<one sentence plain English>",'
-    '"reasoning_steps":["<step1>","<step2>","<step3>","<step4>","<step5>"]}'
-    '\n\nProvide exactly 5 short reasoning steps (5-10 words each) that show how you arrived at the decision.'
+    '"reasoning_steps":["<step1>","<step2>","<step3>","<step4>","<step5>"],'
+    '"thinking_summary":"<1-2 sentence summary of your overall approach and key factors>"}'
+    '\n\nProvide exactly 5 short reasoning steps (5-10 words each) and a brief thinking_summary (1-2 sentences) that describes your overall analytical approach.'
 )
 
 def _build_user_prompt(content: str, platform: str) -> str:
@@ -85,6 +86,7 @@ def moderate(content: str, platform: str = "social_media") -> dict:
 
     explanation = (result.get("explanation") or "").strip()
     reasoning_steps = result.get("reasoning_steps", [])
+    thinking_summary = result.get("thinking_summary", "")
     # Ensure we have exactly 5 steps; pad or truncate as needed
     if not isinstance(reasoning_steps, list):
         reasoning_steps = []
@@ -102,5 +104,6 @@ def moderate(content: str, platform: str = "social_media") -> dict:
         "confidence":  confidence,
         "explanation": explanation,
         "reasoning_steps": reasoning_steps,
+        "thinking_summary": thinking_summary,
         "model":       AI_MODEL,
     }

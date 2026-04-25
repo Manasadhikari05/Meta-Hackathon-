@@ -145,6 +145,7 @@ export default function Moderator({ onBack }) {
   const [lastRating, setLastRating] = useState(null)
   const [thinkingStep, setThinkingStep] = useState(0)
   const [reasoningSteps, setReasoningSteps] = useState([])
+  const [thinkingSummary, setThinkingSummary] = useState('')
   const thinkingIntervalRef = useRef(null)
 
   const handleModerate = useCallback(async () => {
@@ -152,6 +153,7 @@ export default function Moderator({ onBack }) {
     setPhase('loading')
     setThinkingStep(0)
     setReasoningSteps([])
+    setThinkingSummary('')
     setError(null)
 
     // Start thinking animation after a brief delay
@@ -162,9 +164,12 @@ export default function Moderator({ onBack }) {
     try {
       const result = await api.moderate(content.trim(), platform)
       setVerdict(result)
-      // Store reasoning steps from the API response
+      // Store reasoning steps and summary from the API response
       if (result.reasoning_steps && Array.isArray(result.reasoning_steps)) {
         setReasoningSteps(result.reasoning_steps)
+      }
+      if (result.thinking_summary) {
+        setThinkingSummary(result.thinking_summary)
       }
       setPhase('verdict')
     } catch (e) {
@@ -195,6 +200,7 @@ export default function Moderator({ onBack }) {
     setError(null)
     setThinkingStep(0)
     setReasoningSteps([])
+    setThinkingSummary('')
     if (thinkingIntervalRef.current) {
       clearInterval(thinkingIntervalRef.current)
       thinkingIntervalRef.current = null
@@ -361,10 +367,22 @@ export default function Moderator({ onBack }) {
         {/* ── Verdict + rating phase ────────────────────── */}
         {(phase === 'verdict' || phase === 'submitting') && verdict && (
           <div className="max-w-4xl mx-auto animate-slide-up">
+            {/* Thinking summary */}
+            {thinkingSummary && (
+              <div className="mb-6">
+                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">AI Approach</p>
+                <div className="bg-gradient-to-r from-indigo-900/30 to-purple-900/30 border border-indigo-500/30 rounded-2xl p-5">
+                  <p className="text-zinc-200 text-sm leading-relaxed italic">
+                    "{thinkingSummary}"
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Reasoning steps — always shown on verdict */}
             {reasoningSteps.length > 0 && (
               <div className="mb-8">
-                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-4">AI Reasoning Process</p>
+                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-4">Step-by-Step Analysis</p>
                 <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
                   <div className="space-y-3">
                     {reasoningSteps.map((stepText, index) => {
