@@ -30,6 +30,15 @@ const STEP_ICONS = {
   final: CheckSquare,
 }
 
+// Fallback steps when reasoning_steps not yet available
+const FALLBACK_STEPS = [
+  'Analyzing content intent...',
+  'Scanning for policy violations...',
+  'Evaluating tone and context...',
+  'Assessing severity level...',
+  'Finalizing moderation decision...',
+]
+
 function ThinkingAnimation({ steps, currentStep }) {
   return (
     <div className="space-y-3">
@@ -199,7 +208,7 @@ export default function Moderator({ onBack }) {
 
       thinkingIntervalRef.current = setInterval(() => {
         setThinkingStep(prev => {
-          const steps = reasoningSteps.length > 0 ? reasoningSteps : THINKING_STEPS
+          const steps = reasoningSteps.length > 0 ? reasoningSteps : FALLBACK_STEPS
           if (prev >= steps.length - 1) {
             return prev // Stay on last step until API returns
           }
