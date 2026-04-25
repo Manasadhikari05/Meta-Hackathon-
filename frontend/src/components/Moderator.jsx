@@ -151,22 +151,16 @@ export default function Moderator({ onBack }) {
 
   const handleModerate = useCallback(async () => {
     if (!content.trim()) return
-    setPhase('loading')
+    setPhase('thinking')
     setThinkingStep(0)
     setReasoningSteps([])
     setThinkingSummary('')
     setDetailedReasoning('')
     setError(null)
 
-    // Start thinking animation after a brief delay
-    setTimeout(() => {
-      setPhase('thinking')
-    }, 500)
-
     try {
       const result = await api.moderate(content.trim(), platform)
-      setVerdict(result)
-      // Store reasoning data from the API response
+      // Store reasoning data immediately
       if (result.reasoning_steps && Array.isArray(result.reasoning_steps)) {
         setReasoningSteps(result.reasoning_steps)
       }
@@ -176,6 +170,7 @@ export default function Moderator({ onBack }) {
       if (result.detailed_reasoning) {
         setDetailedReasoning(result.detailed_reasoning)
       }
+      setVerdict(result)
       setPhase('verdict')
     } catch (e) {
       setError(e.message)
@@ -354,17 +349,97 @@ export default function Moderator({ onBack }) {
             <div className="text-center mb-8">
               <p className="text-xs font-semibold tracking-[.2em] text-zinc-500 uppercase mb-3">AI Analysis in Progress</p>
               <h2 className="text-2xl font-bold text-zinc-100 mb-2">Thinking through your content</h2>
-              <p className="text-zinc-400 text-sm">Watch the AI analyze step by step</p>
+              <p className="text-zinc-400 text-sm">Watch the AI analyze in real-time</p>
             </div>
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-              <ThinkingAnimation steps={reasoningSteps} currentStep={thinkingStep} />
+            {/* Real-time steps display */}
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 mb-6">
+              <div className="space-y-3">
+                {reasoningSteps.length > 0 ? (
+                  reasoningSteps.map((stepText, index) => {
+                    let iconType = 'default'
+                    const text = stepText.toLowerCase()
+                    if (text.includes('intent') || text.includes('analyzing')) iconType = 'intent'
+                    else if (text.includes('policy') || text.includes('violation') || text.includes('scanning')) iconType = 'policy'
+                    else if (text.includes('tone') || text.includes('context') || text.includes('evaluating')) iconType = 'tone'
+                    else if (text.includes('severity') || text.includes('assessing')) iconType = 'severity'
+                    else if (text.includes('final') || text.includes('decision') || text.includes('finalizing')) iconType = 'final'
+
+                    const Icon = STEP_ICONS[iconType] || Brain
+                    const isActive = index === thinkingStep
+                    const isCompleted = index < thinkingStep
+
+                    return (
+                      <div
+                        key={index}
+                        className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-500 ${
+                          isActive
+                            ? 'bg-indigo-500/10 border border-indigo-500/30 text-indigo-300'
+                            : isCompleted
+                            ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                            : 'bg-zinc-800/50 border border-zinc-700/50 text-zinc-600'
+                        }`}
+                      >
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                          isActive ? 'bg-indigo-500/20' : isCompleted ? 'bg-emerald-500/20' : 'bg-zinc-700/50'
+                        }`}>
+                          {isCompleted ? (
+                            <CheckSquare className="w-4 h-4" />
+                          ) : (
+                            <Icon className={`w-4 h-4 ${isActive ? 'animate-pulse' : ''}`} />
+                          )}
+                        </div>
+                        <span className={`text-sm ${isActive ? 'font-medium' : ''}`}>
+                          {stepText}
+                        </span>
+                        {isActive && (
+                          <div className="ml-auto w-5 h-5 border-2 border-indigo-400/30 border-t-indigo-400 rounded-full animate-spin" />
+                        )}
+                      </div>
+                    )
+                  })
+                ) : (
+                  // Placeholder while waiting for API
+                  FALLBACK_STEPS.map((stepText, index) => {
+                    const isActive = index === thinkingStep
+                    const isCompleted = index < thinkingStep
+                    return (
+                      <div
+                        key={index}
+                        className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-500 ${
+                          isActive
+                            ? 'bg-indigo-500/10 border border-indigo-500/30 text-indigo-300'
+                            : isCompleted
+                            ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                            : 'bg-zinc-800/50 border border-zinc-700/50 text-zinc-600'
+                        }`}
+                      >
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                          isActive ? 'bg-indigo-500/20' : isCompleted ? 'bg-emerald-500/20' : 'bg-zinc-700/50'
+                        }`}>
+                          {isCompleted ? (
+                            <CheckSquare className="w-4 h-4" />
+                          ) : (
+                            <Brain className={`w-4 h-4 ${isActive ? 'animate-pulse' : ''}`} />
+                          )}
+                        </div>
+                        <span className={`text-sm ${isActive ? 'font-medium' : ''}`}>
+                          {stepText}
+                        </span>
+                        {isActive && (
+                          <div className="ml-auto w-5 h-5 border-2 border-indigo-400/30 border-t-indigo-400 rounded-full animate-spin" />
+                        )}
+                      </div>
+                    )
+                  })
+                )}
+              </div>
             </div>
 
             <div className="mt-6 text-center">
               <div className="inline-flex items-center gap-2 text-xs text-zinc-500">
                 <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
-                Processing with GPT-4o
+                Processing with GPT-4o — Step {thinkingStep + 1} of {reasoningSteps.length > 0 ? reasoningSteps.length : FALLBACK_STEPS.length}
               </div>
             </div>
           </div>
