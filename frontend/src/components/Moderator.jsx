@@ -36,7 +36,6 @@ const FALLBACK_STEPS = [
   'Scanning for policy violations...',
   'Evaluating tone and context...',
   'Assessing severity level...',
-  'Finalizing moderation decision...',
 ]
 
 function ThinkingAnimation({ steps, currentStep }) {
@@ -170,6 +169,8 @@ export default function Moderator({ onBack }) {
       if (result.thinking_summary) {
         setThinkingSummary(result.thinking_summary)
       }
+      setVerdict(result)
+
       if (result.detailed_reasoning) {
         setDetailedReasoning(result.detailed_reasoning)
         // Start typewriter effect for detailed reasoning
@@ -184,11 +185,16 @@ export default function Moderator({ onBack }) {
           } else {
             clearInterval(reasoningIntervalRef.current)
             reasoningIntervalRef.current = null
+            // Wait 3 seconds for user to read, then show verdict
+            setTimeout(() => {
+              setPhase('verdict')
+            }, 3000)
           }
         }, 15) // ~60 chars per second
+      } else {
+        // No detailed reasoning, go straight to verdict
+        setPhase('verdict')
       }
-      setVerdict(result)
-      setPhase('verdict')
     } catch (e) {
       setError(e.message)
       setPhase('input')
@@ -375,107 +381,17 @@ export default function Moderator({ onBack }) {
             </div>
 
             {/* Real-time detailed reasoning — streams as AI thinks */}
-            {detailedReasoning && (
-              <div className="mb-6">
-                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">Live Reasoning</p>
-                <div className="bg-gradient-to-r from-indigo-900/30 to-purple-900/30 border border-indigo-500/30 rounded-2xl p-5 min-h-[120px]">
-                  <p className="text-zinc-200 text-sm leading-relaxed">
-                    {displayedReasoning}
-                    <span className="inline-block w-2 h-4 bg-indigo-400 ml-1 animate-pulse" />
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Real-time steps display */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 mb-6">
-              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-4">Analysis Steps</p>
-              <div className="space-y-3">
-                {reasoningSteps.length > 0 ? (
-                  reasoningSteps.map((stepText, index) => {
-                    let iconType = 'default'
-                    const text = stepText.toLowerCase()
-                    if (text.includes('intent') || text.includes('analyzing')) iconType = 'intent'
-                    else if (text.includes('policy') || text.includes('violation') || text.includes('scanning')) iconType = 'policy'
-                    else if (text.includes('tone') || text.includes('context') || text.includes('evaluating')) iconType = 'tone'
-                    else if (text.includes('severity') || text.includes('assessing')) iconType = 'severity'
-                    else if (text.includes('final') || text.includes('decision') || text.includes('finalizing')) iconType = 'final'
-
-                    const Icon = STEP_ICONS[iconType] || Brain
-                    const isActive = index === thinkingStep
-                    const isCompleted = index < thinkingStep
-
-                    return (
-                      <div
-                        key={index}
-                        className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-500 ${
-                          isActive
-                            ? 'bg-indigo-500/10 border border-indigo-500/30 text-indigo-300'
-                            : isCompleted
-                            ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-                            : 'bg-zinc-800/50 border border-zinc-700/50 text-zinc-600'
-                        }`}
-                      >
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                          isActive ? 'bg-indigo-500/20' : isCompleted ? 'bg-emerald-500/20' : 'bg-zinc-700/50'
-                        }`}>
-                          {isCompleted ? (
-                            <CheckSquare className="w-4 h-4" />
-                          ) : (
-                            <Icon className={`w-4 h-4 ${isActive ? 'animate-pulse' : ''}`} />
-                          )}
-                        </div>
-                        <span className={`text-sm ${isActive ? 'font-medium' : ''}`}>
-                          {stepText}
-                        </span>
-                        {isActive && (
-                          <div className="ml-auto w-5 h-5 border-2 border-indigo-400/30 border-t-indigo-400 rounded-full animate-spin" />
-                        )}
-                      </div>
-                    )
-                  })
-                ) : (
-                  // Placeholder while waiting for API
-                  FALLBACK_STEPS.map((stepText, index) => {
-                    const isActive = index === thinkingStep
-                    const isCompleted = index < thinkingStep
-                    return (
-                      <div
-                        key={index}
-                        className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-500 ${
-                          isActive
-                            ? 'bg-indigo-500/10 border border-indigo-500/30 text-indigo-300'
-                            : isCompleted
-                            ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-                            : 'bg-zinc-800/50 border border-zinc-700/50 text-zinc-600'
-                        }`}
-                      >
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                          isActive ? 'bg-indigo-500/20' : isCompleted ? 'bg-emerald-500/20' : 'bg-zinc-700/50'
-                        }`}>
-                          {isCompleted ? (
-                            <CheckSquare className="w-4 h-4" />
-                          ) : (
-                            <Brain className={`w-4 h-4 ${isActive ? 'animate-pulse' : ''}`} />
-                          )}
-                        </div>
-                        <span className={`text-sm ${isActive ? 'font-medium' : ''}`}>
-                          {stepText}
-                        </span>
-                        {isActive && (
-                          <div className="ml-auto w-5 h-5 border-2 border-indigo-400/30 border-t-indigo-400 rounded-full animate-spin" />
-                        )}
-                      </div>
-                    )
-                  })
-                )}
-              </div>
+            <div className="bg-gradient-to-r from-indigo-900/30 to-purple-900/30 border border-indigo-500/30 rounded-2xl p-6 min-h-[200px]">
+              <p className="text-zinc-200 text-sm leading-relaxed whitespace-pre-wrap">
+                {displayedReasoning}
+                <span className="inline-block w-2 h-4 bg-indigo-400 ml-1 animate-pulse" />
+              </p>
             </div>
 
             <div className="mt-6 text-center">
               <div className="inline-flex items-center gap-2 text-xs text-zinc-500">
                 <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
-                Processing with GPT-4o — Step {thinkingStep + 1} of {reasoningSteps.length > 0 ? reasoningSteps.length : FALLBACK_STEPS.length}
+                AI is analyzing your content...
               </div>
             </div>
           </div>
@@ -484,25 +400,15 @@ export default function Moderator({ onBack }) {
         {/* ── Verdict + rating phase ────────────────────── */}
         {(phase === 'verdict' || phase === 'submitting') && verdict && (
           <div className="max-w-4xl mx-auto animate-slide-up">
-            {/* Thinking summary */}
-            {thinkingSummary && (
-              <div className="mb-6">
-                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">AI Approach</p>
-                <div className="bg-gradient-to-r from-indigo-900/30 to-purple-900/30 border border-indigo-500/30 rounded-2xl p-5">
-                  <p className="text-zinc-200 text-sm leading-relaxed italic">
-                    "{thinkingSummary}"
-                  </p>
-                </div>
-              </div>
-            )}
-
             {/* Reasoning steps — always shown on verdict */}
             {reasoningSteps.length > 0 && (
               <div className="mb-8">
                 <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-4">Step-by-Step Analysis</p>
                 <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
                   <div className="space-y-3">
-                    {reasoningSteps.map((stepText, index) => {
+                    {reasoningSteps
+                      .filter(step => !step.toLowerCase().includes('determine') && !step.toLowerCase().includes('finaliz'))
+                      .map((stepText, index) => {
                       // Determine icon based on step content keywords
                       let iconType = 'default'
                       const text = stepText.toLowerCase()
