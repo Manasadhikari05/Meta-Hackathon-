@@ -374,8 +374,22 @@ export default function Moderator({ onBack }) {
               <p className="text-zinc-400 text-sm">Watch the AI analyze in real-time</p>
             </div>
 
+            {/* Real-time detailed reasoning — streams as AI thinks */}
+            {detailedReasoning && (
+              <div className="mb-6">
+                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">Live Reasoning</p>
+                <div className="bg-gradient-to-r from-indigo-900/30 to-purple-900/30 border border-indigo-500/30 rounded-2xl p-5 min-h-[120px]">
+                  <p className="text-zinc-200 text-sm leading-relaxed">
+                    {displayedReasoning}
+                    <span className="inline-block w-2 h-4 bg-indigo-400 ml-1 animate-pulse" />
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Real-time steps display */}
             <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 mb-6">
+              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-4">Analysis Steps</p>
               <div className="space-y-3">
                 {reasoningSteps.length > 0 ? (
                   reasoningSteps.map((stepText, index) => {
@@ -477,19 +491,6 @@ export default function Moderator({ onBack }) {
                 <div className="bg-gradient-to-r from-indigo-900/30 to-purple-900/30 border border-indigo-500/30 rounded-2xl p-5">
                   <p className="text-zinc-200 text-sm leading-relaxed italic">
                     "{thinkingSummary}"
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Detailed reasoning — full chain of thought with typewriter effect */}
-            {detailedReasoning && (
-              <div className="mb-6">
-                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">Detailed Analysis</p>
-                <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-5">
-                  <p className="text-zinc-300 text-sm leading-relaxed whitespace-pre-line">
-                    {displayedReasoning}
-                    <span className="inline-block w-2 h-4 bg-indigo-500 ml-1 animate-pulse" />
                   </p>
                 </div>
               </div>
