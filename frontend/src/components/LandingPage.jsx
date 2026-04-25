@@ -545,7 +545,7 @@ export default function LandingPage({ onEnterApp, onEnterDashboard }) {
         </div>
 
         {/* Features Section */}
-        <div className="mt-32 mb-20">
+        <div id="features-section" className="mt-32 mb-20">
           <div className="mb-6">
             <h2 className="text-6xl font-bold mb-4 text-gray-900" style={{ fontFamily: 'Georgia, serif' }}>
               Advanced AI Moderation Platform
