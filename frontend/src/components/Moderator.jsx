@@ -147,7 +147,9 @@ export default function Moderator({ onBack }) {
   const [reasoningSteps, setReasoningSteps] = useState([])
   const [thinkingSummary, setThinkingSummary] = useState('')
   const [detailedReasoning, setDetailedReasoning] = useState('')
+  const [displayedReasoning, setDisplayedReasoning] = useState('') // For typewriter effect
   const thinkingIntervalRef = useRef(null)
+  const reasoningIntervalRef = useRef(null)
 
   const handleModerate = useCallback(async () => {
     if (!content.trim()) return
@@ -156,6 +158,7 @@ export default function Moderator({ onBack }) {
     setReasoningSteps([])
     setThinkingSummary('')
     setDetailedReasoning('')
+    setDisplayedReasoning('')
     setError(null)
 
     try {
@@ -169,6 +172,20 @@ export default function Moderator({ onBack }) {
       }
       if (result.detailed_reasoning) {
         setDetailedReasoning(result.detailed_reasoning)
+        // Start typewriter effect for detailed reasoning
+        setDisplayedReasoning('')
+        const fullText = result.detailed_reasoning
+        let index = 0
+        clearInterval(reasoningIntervalRef.current)
+        reasoningIntervalRef.current = setInterval(() => {
+          if (index < fullText.length) {
+            setDisplayedReasoning(fullText.slice(0, index + 1))
+            index++
+          } else {
+            clearInterval(reasoningIntervalRef.current)
+            reasoningIntervalRef.current = null
+          }
+        }, 15) // ~60 chars per second
       }
       setVerdict(result)
       setPhase('verdict')
@@ -202,9 +219,14 @@ export default function Moderator({ onBack }) {
     setReasoningSteps([])
     setThinkingSummary('')
     setDetailedReasoning('')
+    setDisplayedReasoning('')
     if (thinkingIntervalRef.current) {
       clearInterval(thinkingIntervalRef.current)
       thinkingIntervalRef.current = null
+    }
+    if (reasoningIntervalRef.current) {
+      clearInterval(reasoningIntervalRef.current)
+      reasoningIntervalRef.current = null
     }
   }
 
@@ -460,13 +482,14 @@ export default function Moderator({ onBack }) {
               </div>
             )}
 
-            {/* Detailed reasoning — full chain of thought */}
+            {/* Detailed reasoning — full chain of thought with typewriter effect */}
             {detailedReasoning && (
               <div className="mb-6">
                 <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">Detailed Analysis</p>
                 <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-5">
                   <p className="text-zinc-300 text-sm leading-relaxed whitespace-pre-line">
-                    {detailedReasoning}
+                    {displayedReasoning}
+                    <span className="inline-block w-2 h-4 bg-indigo-500 ml-1 animate-pulse" />
                   </p>
                 </div>
               </div>
