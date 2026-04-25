@@ -11,20 +11,46 @@ from pathlib import Path
 import requests
 from dotenv import load_dotenv
 from openai import OpenAI
+import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM
 
 load_dotenv(Path(__file__).resolve().parent / ".env")
+
+USE_LOCAL_LLM = os.getenv("USE_LOCAL_LLM", "true").lower() == "true"
+HF_MODEL_ID = os.getenv("HF_MODEL_ID", "mistralai/Mistral-7B-Instruct-v0.2")
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
 
-if not OPENAI_API_KEY:
-    sys.exit("ERROR: Set OPENAI_API_KEY environment variable")
-
 _benchmark = "content-moderation-openenv"
 
-client = OpenAI(
-    api_key=OPENAI_API_KEY,
-)
+if USE_LOCAL_LLM:
+    print(f"Initializing Local Model: {HF_MODEL_ID} (Quantized if GPU)")
+    tokenizer = AutoTokenizer.from_pretrained(HF_MODEL_ID)
+    
+    device_map = "auto" if torch.cuda.is_available() else "cpu"
+    
+    model_kwargs = {
+        "device_map": device_map,
+    }
+    if torch.cuda.is_available():
+        model_kwargs["load_in_8bit"] = True
+    else:
+        model_kwargs["torch_dtype"] = torch.float32
+
+    try:
+        model = AutoModelForCausalLM.from_pretrained(HF_MODEL_ID, **model_kwargs)
+        print("Local model loaded successfully.")
+    except Exception as e:
+        print(f"Failed to load local model: {e}")
+        sys.exit(1)
+    
+    client = None
+else:
+    print(f"Initializing Cloud OpenAI Model: {MODEL_NAME}")
+    if not OPENAI_API_KEY:
+        sys.exit("ERROR: Set OPENAI_API_KEY environment variable")
+    client = OpenAI(api_key=OPENAI_API_KEY)
 
 VALID_DECISIONS = {"approve", "remove", "escalate"}
 VALID_REASON_CODES = {
@@ -183,6 +209,31 @@ FALLBACK_ACTION = {
 
 def _call_llm(prompt):
     """Call model with retries. Always returns a valid action dict."""
+    if USE_LOCAL_LLM:
+        try:
+            full_prompt = f"[INST] {SYSTEM_PROMPT}\n\n{prompt} [/INST]"
+            inputs = tokenizer(full_prompt, return_tensors="pt").to(model.device)
+            
+            outputs = model.generate(
+                **inputs,
+                max_new_tokens=120,
+                do_sample=False
+            )
+            
+            new_tokens = outputs[0][inputs["input_ids"].shape[1]:]
+            raw_text = tokenizer.decode(new_tokens, skip_special_tokens=True)
+            
+            if not raw_text or not raw_text.strip():
+                return FALLBACK_ACTION.copy()
+                
+            parsed = _extract_json(raw_text)
+            if parsed and isinstance(parsed, dict):
+                return _sanitize_action(parsed)
+        except Exception as e:
+            print(f"[_call_llm] Local Model Error: {e}")
+            
+        return FALLBACK_ACTION.copy()
+
     for attempt in range(5):
         backoff = min(2 ** attempt, 16)
         try:
@@ -227,7 +278,8 @@ def run_task(task_id, env_url):
     rewards = []
     step_num = 0
 
-    print(f"[START] task={task_id} env={_benchmark} model={MODEL_NAME}")
+    model_id_str = HF_MODEL_ID if USE_LOCAL_LLM else MODEL_NAME
+    print(f"[START] task={task_id} env={_benchmark} model={model_id_str}")
 
     try:
         r = requests.post(f"{env_url}/reset", params={"task_id": task_id}, timeout=30)
@@ -304,6 +356,7 @@ if __name__ == "__main__":
         try:
             run_task(task_id, env_base)
         except Exception as e:
-            print(f"[START] task={task_id} env={_benchmark} model={MODEL_NAME}")
+            model_id_str = HF_MODEL_ID if USE_LOCAL_LLM else MODEL_NAME
+            print(f"[START] task={task_id} env={_benchmark} model={model_id_str}")
             print(f"[STEP] step=1 action=null reward=0.01 done=true error={e}")
             print(f"[END] success=false steps=0 score=0.001")
