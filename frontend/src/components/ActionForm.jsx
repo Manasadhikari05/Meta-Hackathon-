@@ -16,6 +16,7 @@ const REASONS = [
   { id: 'violence',      label: 'Violence' },
   { id: 'self_harm',     label: 'Self Harm' },
   { id: 'sexual_content',label: 'Sexual' },
+  { id: 'sarcasm',       label: 'Sarcasm' },
 ]
 
 const SEVERITIES = ['low', 'medium', 'high']
