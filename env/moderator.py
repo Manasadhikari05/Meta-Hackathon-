@@ -12,11 +12,12 @@ import uuid
 
 from openai import OpenAI
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-AI_MODEL       = os.getenv("AI_MODEL", "gpt-4o-mini")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY") or os.getenv("HF_TOKEN", "")
+API_BASE_URL   = os.getenv("API_BASE_URL") or None
+AI_MODEL       = os.getenv("AI_MODEL") or os.getenv("MODEL_NAME", "gpt-4o-mini")
 TIMEOUT        = float(os.getenv("AI_GRADER_TIMEOUT", "60"))
 
-client = OpenAI(api_key=OPENAI_API_KEY)
+client = OpenAI(api_key=OPENAI_API_KEY, base_url=API_BASE_URL)
 
 VALID_DECISIONS  = {"approve", "remove", "escalate"}
 VALID_REASONS    = {"clean", "spam", "hate_speech", "harassment",
@@ -52,6 +53,11 @@ def moderate(content: str, platform: str = "social_media") -> dict:
     severity, confidence, explanation, model.
     Raises on API error — callers should catch and return 503.
     """
+    if not OPENAI_API_KEY:
+        raise RuntimeError(
+            "Missing API key. Set OPENAI_API_KEY (preferred) or HF_TOKEN in .env."
+        )
+
     response = client.chat.completions.create(
         model=AI_MODEL,
         messages=[

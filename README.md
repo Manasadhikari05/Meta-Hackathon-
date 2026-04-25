@@ -66,9 +66,11 @@ docker run -p 7860:7860 cm-openenv
 
 Set these in `.env`:
 
-- `API_BASE_URL` — LLM endpoint (e.g. `https://api.groq.com/openai/v1`)
-- `MODEL_NAME` — model to use (e.g. `llama-3.3-70b-versatile`) 
-- `HF_TOKEN` — API key
+- `OPENAI_API_KEY` — preferred API key for OpenAI-compatible client
+- `AI_MODEL` — preferred model name for moderator/grader (default: `gpt-4o-mini`)
+- `API_BASE_URL` — optional custom OpenAI-compatible endpoint (e.g. Groq/OpenRouter)
+- `HF_TOKEN` — legacy fallback token name supported for compatibility
+- `MODEL_NAME` — legacy fallback model variable supported for compatibility
 
 ## Tests
 

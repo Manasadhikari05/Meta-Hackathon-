@@ -14,10 +14,11 @@ from openai import OpenAI
 
 from env.graders._shared import _clamp
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-AI_MODEL       = os.getenv("AI_MODEL", "gpt-4o-mini")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY") or os.getenv("HF_TOKEN", "")
+API_BASE_URL   = os.getenv("API_BASE_URL") or None
+AI_MODEL       = os.getenv("AI_MODEL") or os.getenv("MODEL_NAME", "gpt-4o-mini")
 
-client = OpenAI(api_key=OPENAI_API_KEY)
+client = OpenAI(api_key=OPENAI_API_KEY, base_url=API_BASE_URL)
 
 # ---------------------------------------------------------------------------
 # Prompt builder
