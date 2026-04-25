@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import LandingPage from './components/LandingPage'
 import Moderator from './components/Moderator'
+import Dashboard from './components/Dashboard'
 
 export default function App() {
   const [view, setView] = useState('landing')
@@ -8,5 +9,13 @@ export default function App() {
   if (view === 'moderator') {
     return <Moderator onBack={() => setView('landing')} />
   }
-  return <LandingPage onEnterApp={() => setView('moderator')} />
+  if (view === 'dashboard') {
+    return <Dashboard onBack={() => setView('landing')} />
+  }
+  return (
+    <LandingPage
+      onEnterApp={() => setView('moderator')}
+      onEnterDashboard={() => setView('dashboard')}
+    />
+  )
 }

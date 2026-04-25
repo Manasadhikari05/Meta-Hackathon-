@@ -14,14 +14,26 @@ async function req(path, opts = {}) {
 
 export const api = {
   health:   ()              => req('/health'),
+
   // AI Moderator
   moderate: (content, platform) =>
     req('/moderate', { method: 'POST', body: JSON.stringify({ content, platform }) }),
   feedback: (payload)       =>
     req('/feedback', { method: 'POST', body: JSON.stringify(payload) }),
   history:  ()              => req('/history'),
-  // Legacy RL task runner
+
+  // OpenEnv RL task runner
   reset:    (taskId)        => req(`/reset?task_id=${taskId}`, { method: 'POST' }),
   step:     (action)        => req('/step', { method: 'POST', body: JSON.stringify(action) }),
   state:    ()              => req('/state'),
+
+  // OpenEnv dataset endpoints
+  posts:    (limit, difficulty) => {
+    const params = new URLSearchParams()
+    if (limit)      params.set('limit', limit)
+    if (difficulty) params.set('difficulty', difficulty)
+    const qs = params.toString()
+    return req(`/posts${qs ? `?${qs}` : ''}`)
+  },
+  stats:    ()              => req('/stats'),
 }

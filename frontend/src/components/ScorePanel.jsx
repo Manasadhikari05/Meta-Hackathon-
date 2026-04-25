@@ -215,7 +215,7 @@ export default function ScorePanel({ history, taskId, lastReward }) {
         </div>
         <div className="mt-4 pt-4 border-t border-zinc-800 flex items-center gap-2">
           <Bot className="w-3.5 h-3.5 text-indigo-500" />
-          <p className="text-[11px] text-zinc-500">Graded by llama3.2 via Ollama</p>
+          <p className="text-[11px] text-zinc-500">Graded by gpt-4o-mini via OpenAI</p>
         </div>
       </div>
     </div>

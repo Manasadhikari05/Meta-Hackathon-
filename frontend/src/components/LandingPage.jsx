@@ -114,7 +114,7 @@ const LLMLogos = () => (
   </>
 );
 
-export default function LandingPage({ onEnterApp }) {
+export default function LandingPage({ onEnterApp, onEnterDashboard }) {
   const [showBenchmarkModal, setShowBenchmarkModal] = useState(false);
   const [activeFeature, setActiveFeature] = useState(null);
 
@@ -228,8 +228,11 @@ export default function LandingPage({ onEnterApp }) {
       {/* Header */}
       <Header
         onAnalyzeModels={() => setShowBenchmarkModal(true)}
-        onNavigate={() => {}}
+        onNavigate={(dest) => {
+          if (dest === 'features') window.scrollTo({ top: document.getElementById('features-section')?.offsetTop || 800, behavior: 'smooth' });
+        }}
         onEnterApp={onEnterApp}
+        onEnterDashboard={onEnterDashboard}
       />
 
       {/* Hero Section */}
@@ -239,21 +242,21 @@ export default function LandingPage({ onEnterApp }) {
             AI-Driven Content<br />Moderation Right Away
           </h1>
           <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed mb-10">
-            From cropped AI conversion data, improve influencer info across all AI models—and protect your community with real-time content moderation
+            Protect your community with our state-of-the-art AI content moderation system. Explore the interactive OpenEnv RL dashboard or test the AI Moderator in real-time.
           </p>
           <div className="flex items-center justify-center gap-4 mb-6">
             <button
-              onClick={onEnterApp}
+              onClick={onEnterDashboard}
               className="inline-flex items-center gap-2 bg-gray-900 text-white px-8 py-3.5 rounded-2xl text-sm font-semibold hover:bg-gray-700 transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               Launch Dashboard
               <ArrowRight className="w-4 h-4" />
             </button>
             <button
-              onClick={() => setShowBenchmarkModal(true)}
+              onClick={onEnterApp}
               className="inline-flex items-center gap-2 border border-gray-300 text-gray-700 px-6 py-3.5 rounded-2xl text-sm font-semibold hover:border-gray-400 hover:bg-gray-50 transition-all duration-200"
             >
-              View Benchmarks
+              Try AI Moderator
             </button>
           </div>
         </div>
@@ -574,9 +577,9 @@ export default function LandingPage({ onEnterApp }) {
 
                    <button
                      onClick={() => setActiveFeature(feature.link)}
-                     className="text-sm text-blue-600 hover:underline mt-auto text-left"
+                     className="text-sm text-indigo-600 hover:underline mt-auto text-left flex items-center gap-1"
                    >
-                     {feature.link} →
+                     Learn More <ArrowRight className="w-3.5 h-3.5" />
                    </button>
                  </div>
                );
@@ -602,10 +605,10 @@ export default function LandingPage({ onEnterApp }) {
             <div>
               <h4 className="font-semibold mb-4">Product</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition">Features</a></li>
-                <li><a href="#" className="hover:text-white transition">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition">API</a></li>
-                <li><a href="#" className="hover:text-white transition">Documentation</a></li>
+                <li><button onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} className="hover:text-white transition">Features</button></li>
+                <li><button onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} className="hover:text-white transition">Pricing</button></li>
+                <li><button onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} className="hover:text-white transition">API</button></li>
+                <li><button onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} className="hover:text-white transition">Documentation</button></li>
               </ul>
             </div>
             
@@ -613,10 +616,10 @@ export default function LandingPage({ onEnterApp }) {
             <div>
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition">About</a></li>
-                <li><a href="#" className="hover:text-white transition">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition">Contact</a></li>
+                <li><button onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} className="hover:text-white transition">About</button></li>
+                <li><button onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} className="hover:text-white transition">Blog</button></li>
+                <li><button onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} className="hover:text-white transition">Careers</button></li>
+                <li><button onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} className="hover:text-white transition">Contact</button></li>
               </ul>
             </div>
           </div>

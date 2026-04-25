@@ -1,22 +1,23 @@
 """
-LLM-as-judge grader using llama3.2 via Ollama.
+LLM-as-judge grader using OpenAI.
 
 Replaces the hardcoded heuristic graders with a language model that reasons
 about whether a moderation decision is appropriate given the post content,
 author context, and task difficulty. Falls back to the heuristic grader if
-Ollama is unreachable.
+OpenAI is unreachable.
 """
 
 import json
 import os
 
-import httpx
+from openai import OpenAI
 
 from env.graders._shared import _clamp
 
-OLLAMA_URL   = os.getenv("OLLAMA_URL",        "http://localhost:11434")
-AI_MODEL     = os.getenv("AI_GRADER_MODEL",   "llama3.2:latest")
-TIMEOUT      = float(os.getenv("AI_GRADER_TIMEOUT", "60"))
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+AI_MODEL       = os.getenv("AI_MODEL", "gpt-4o-mini")
+
+client = OpenAI(api_key=OPENAI_API_KEY)
 
 # ---------------------------------------------------------------------------
 # Prompt builder
@@ -112,23 +113,18 @@ Respond with valid JSON only — no markdown, no extra text:
 
 
 # ---------------------------------------------------------------------------
-# Ollama call
+# OpenAI call
 # ---------------------------------------------------------------------------
 
-def _call_ollama(prompt: str) -> dict:
-    resp = httpx.post(
-        f"{OLLAMA_URL}/api/chat",
-        json={
-            "model":    AI_MODEL,
-            "messages": [{"role": "user", "content": prompt}],
-            "stream":   False,
-            "format":   "json",
-            "options":  {"temperature": 0.05, "num_predict": 200},
-        },
-        timeout=TIMEOUT,
+def _call_openai(prompt: str) -> dict:
+    response = client.chat.completions.create(
+        model=AI_MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.05,
+        max_tokens=200,
+        response_format={"type": "json_object"}
     )
-    resp.raise_for_status()
-    raw = resp.json()["message"]["content"]
+    raw = response.choices[0].message.content
     return json.loads(raw)
 
 
@@ -138,7 +134,7 @@ def _call_ollama(prompt: str) -> dict:
 
 def grade(action, post_row: dict, task_id: str = "task1") -> tuple[float, str]:
     """
-    Grade a moderation action using llama3.2 as judge.
+    Grade a moderation action using OpenAI as judge.
 
     Args:
         action:   ModerationAction (or any object with .decision, .reason_code, etc.)
@@ -150,14 +146,14 @@ def grade(action, post_row: dict, task_id: str = "task1") -> tuple[float, str]:
         sentence from the LLM explaining why it gave that score.
     """
     try:
-        result    = _call_ollama(_prompt(action, post_row, task_id))
+        result    = _call_openai(_prompt(action, post_row, task_id))
         score     = float(result.get("score", 0.5))
         reasoning = result.get("reasoning", "").strip()
         print(f"[ai_grader] {task_id} score={score:.3f}  — {reasoning}")
         return _clamp(score), reasoning
 
     except Exception as exc:
-        print(f"[ai_grader] Ollama error ({exc!r}), falling back to heuristic grader.")
+        print(f"[ai_grader] OpenAI error ({exc!r}), falling back to heuristic grader.")
         return _heuristic_fallback(action, post_row, task_id)
 
 
@@ -172,4 +168,4 @@ def _heuristic_fallback(action, post_row: dict, task_id: str) -> tuple[float, st
     else:
         from env.graders.grader1 import grade as g
         score = g(action, gold)
-    return score, "Scored by heuristic grader (Ollama unavailable)."
+    return score, "Scored by heuristic grader (OpenAI unavailable)."

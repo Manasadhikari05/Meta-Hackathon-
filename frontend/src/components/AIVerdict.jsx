@@ -60,7 +60,7 @@ export default function AIVerdict({ verdict }) {
       {/* model tag */}
       <div className="flex items-center gap-1.5 mb-5">
         <Bot className="w-3.5 h-3.5 text-zinc-500" />
-        <span className="text-[11px] text-zinc-500 font-mono">{model ?? 'llama3.2'}</span>
+        <span className="text-[11px] text-zinc-500 font-mono">{model ?? 'gpt-4o'}</span>
       </div>
 
       {/* big decision badge */}

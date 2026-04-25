@@ -14,30 +14,16 @@ from openai import OpenAI
 
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
-API_BASE_URL = os.getenv("API_BASE_URL", "https://api.groq.com/openai/v1")
-MODEL_NAME = os.getenv("MODEL_NAME", "llama-3.3-70b-versatile")
-HF_TOKEN = os.getenv("HF_TOKEN")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
 
-# Optional - if you use from_docker_image():
-LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")
-
-if not HF_TOKEN:
-    sys.exit("ERROR: Set HF_TOKEN environment variable")
+if not OPENAI_API_KEY:
+    sys.exit("ERROR: Set OPENAI_API_KEY environment variable")
 
 _benchmark = "content-moderation-openenv"
 
-# openrouter needs extra headers
-_extra_headers = {}
-if "openrouter" in API_BASE_URL.lower():
-    _extra_headers = {
-        "HTTP-Referer": "https://content-moderation-openenv.hf.space",
-        "X-Title": "content-moderation-openenv",
-    }
-
 client = OpenAI(
-    api_key=HF_TOKEN,
-    base_url=API_BASE_URL,
-    default_headers=_extra_headers,
+    api_key=OPENAI_API_KEY,
 )
 
 VALID_DECISIONS = {"approve", "remove", "escalate"}

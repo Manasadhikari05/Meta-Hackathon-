@@ -26,7 +26,7 @@ class Task1:
             "post_id": self._current["post_id"],
             "reasoning": reasoning,
             "ai_graded": True,
-            "model": "llama3.2",
+            "model": "gpt-4o-mini",
         }
 
     def current_observation(self):

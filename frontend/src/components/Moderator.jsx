@@ -122,7 +122,7 @@ export default function Moderator({ onBack }) {
           <span className="text-zinc-400 text-sm">AI Moderator</span>
           <div className="flex items-center gap-1.5 ml-3">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs text-zinc-600">llama3.2 live</span>
+            <span className="text-xs text-zinc-600">GPT live</span>
           </div>
           <button
             onClick={onBack}
@@ -148,7 +148,7 @@ export default function Moderator({ onBack }) {
               <p className="text-xs font-semibold tracking-[.2em] text-zinc-500 uppercase mb-3">AI Moderation</p>
               <h1 className="text-3xl font-bold text-zinc-100 mb-3">Write anything.</h1>
               <p className="text-zinc-400">
-                llama3.2 will moderate it — approve, remove, or escalate — then you rate how well it did.
+                The AI will moderate it — approve, remove, or escalate — then you rate how well it did.
               </p>
             </div>
 
@@ -271,7 +271,7 @@ export default function Moderator({ onBack }) {
               <div className="flex-1 h-px bg-zinc-800" />
               <div className="flex items-center gap-1.5">
                 <Bot className="w-3.5 h-3.5 text-zinc-600" />
-                <span className="text-[11px] text-zinc-600">graded by llama3.2</span>
+                <span className="text-[11px] text-zinc-600">graded by {history.model ?? 'GPT'}</span>
               </div>
             </div>
             <div className="space-y-2">
