@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react'
-import { Shield, ChevronLeft, Sparkles, RotateCcw, CheckCircle2, XCircle, AlertCircle, ChevronDown, Bot, Star } from 'lucide-react'
+import { useState, useCallback, useEffect, useRef } from 'react'
+import { Shield, ChevronLeft, Sparkles, RotateCcw, CheckCircle2, XCircle, AlertCircle, ChevronDown, Bot, Star, Brain, Zap, Eye, Shield as ShieldIcon, AlertTriangle, CheckSquare } from 'lucide-react'
 import { api } from '../api/client'
 import AIVerdict from './AIVerdict'
 import RatingWidget from './RatingWidget'
@@ -19,6 +19,74 @@ const DEC_COLOR = {
   escalate: 'text-amber-400 bg-amber-500/10 border-amber-500/30',
 }
 const RATING_COLOR = (r) => r >= 8 ? 'text-emerald-400' : r >= 5 ? 'text-amber-400' : 'text-rose-400'
+
+// Icon mapping for different reasoning step types
+const STEP_ICONS = {
+  default: Brain,
+  intent: Brain,
+  policy: Eye,
+  tone: ShieldIcon,
+  severity: AlertTriangle,
+  final: CheckSquare,
+}
+
+// Fallback steps when reasoning_steps not yet available
+const FALLBACK_STEPS = [
+  'Analyzing content intent...',
+  'Scanning for policy violations...',
+  'Evaluating tone and context...',
+  'Assessing severity level...',
+]
+
+function ThinkingAnimation({ steps, currentStep }) {
+  return (
+    <div className="space-y-3">
+      {steps.map((stepText, index) => {
+        // Determine icon based on step content keywords
+        let iconType = 'default'
+        const text = stepText.toLowerCase()
+        if (text.includes('intent') || text.includes('analyzing')) iconType = 'intent'
+        else if (text.includes('policy') || text.includes('violation') || text.includes('scanning')) iconType = 'policy'
+        else if (text.includes('tone') || text.includes('context') || text.includes('evaluating')) iconType = 'tone'
+        else if (text.includes('severity') || text.includes('assessing')) iconType = 'severity'
+        else if (text.includes('final') || text.includes('decision') || text.includes('finalizing')) iconType = 'final'
+
+        const Icon = STEP_ICONS[iconType] || Brain
+        const isActive = index === currentStep
+        const isCompleted = index < currentStep
+
+        return (
+          <div
+            key={index}
+            className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-500 ${
+              isActive
+                ? 'bg-indigo-500/10 border border-indigo-500/30 text-indigo-300'
+                : isCompleted
+                ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                : 'bg-zinc-800/50 border border-zinc-700/50 text-zinc-600'
+            }`}
+          >
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+              isActive ? 'bg-indigo-500/20' : isCompleted ? 'bg-emerald-500/20' : 'bg-zinc-700/50'
+            }`}>
+              {isCompleted ? (
+                <CheckSquare className="w-4 h-4" />
+              ) : (
+                <Icon className={`w-4 h-4 ${isActive ? 'animate-pulse' : ''}`} />
+              )}
+            </div>
+            <span className={`text-sm ${isActive ? 'font-medium' : ''}`}>
+              {stepText}
+            </span>
+            {isActive && (
+              <div className="ml-auto w-5 h-5 border-2 border-indigo-400/30 border-t-indigo-400 rounded-full animate-spin" />
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 function HistoryItem({ item }) {
   const [open, setOpen] = useState(false)
@@ -65,7 +133,7 @@ function HistoryItem({ item }) {
   )
 }
 
-// phase: 'input' | 'loading' | 'verdict' | 'submitting' | 'rated'
+// phase: 'input' | 'loading' | 'thinking' | 'verdict' | 'submitting' | 'rated'
 export default function Moderator({ onBack }) {
   const [phase,    setPhase]    = useState('input')
   const [content,  setContent]  = useState('')
@@ -74,15 +142,59 @@ export default function Moderator({ onBack }) {
   const [history,  setHistory]  = useState([])
   const [error,    setError]    = useState(null)
   const [lastRating, setLastRating] = useState(null)
+  const [thinkingStep, setThinkingStep] = useState(0)
+  const [reasoningSteps, setReasoningSteps] = useState([])
+  const [thinkingSummary, setThinkingSummary] = useState('')
+  const [detailedReasoning, setDetailedReasoning] = useState('')
+  const [displayedReasoning, setDisplayedReasoning] = useState('') // For typewriter effect
+  const thinkingIntervalRef = useRef(null)
+  const reasoningIntervalRef = useRef(null)
 
   const handleModerate = useCallback(async () => {
     if (!content.trim()) return
-    setPhase('loading')
+    setPhase('thinking')
+    setThinkingStep(0)
+    setReasoningSteps([])
+    setThinkingSummary('')
+    setDetailedReasoning('')
+    setDisplayedReasoning('')
     setError(null)
+
     try {
       const result = await api.moderate(content.trim(), platform)
+      // Store reasoning data immediately
+      if (result.reasoning_steps && Array.isArray(result.reasoning_steps)) {
+        setReasoningSteps(result.reasoning_steps)
+      }
+      if (result.thinking_summary) {
+        setThinkingSummary(result.thinking_summary)
+      }
       setVerdict(result)
-      setPhase('verdict')
+
+      if (result.detailed_reasoning) {
+        setDetailedReasoning(result.detailed_reasoning)
+        // Start typewriter effect for detailed reasoning
+        setDisplayedReasoning('')
+        const fullText = result.detailed_reasoning
+        let index = 0
+        clearInterval(reasoningIntervalRef.current)
+        reasoningIntervalRef.current = setInterval(() => {
+          if (index < fullText.length) {
+            setDisplayedReasoning(fullText.slice(0, index + 1))
+            index++
+          } else {
+            clearInterval(reasoningIntervalRef.current)
+            reasoningIntervalRef.current = null
+            // Wait 3 seconds for user to read, then show verdict
+            setTimeout(() => {
+              setPhase('verdict')
+            }, 3000)
+          }
+        }, 15) // ~60 chars per second
+      } else {
+        // No detailed reasoning, go straight to verdict
+        setPhase('verdict')
+      }
     } catch (e) {
       setError(e.message)
       setPhase('input')
@@ -109,7 +221,49 @@ export default function Moderator({ onBack }) {
     setVerdict(null)
     setLastRating(null)
     setError(null)
+    setThinkingStep(0)
+    setReasoningSteps([])
+    setThinkingSummary('')
+    setDetailedReasoning('')
+    setDisplayedReasoning('')
+    if (thinkingIntervalRef.current) {
+      clearInterval(thinkingIntervalRef.current)
+      thinkingIntervalRef.current = null
+    }
+    if (reasoningIntervalRef.current) {
+      clearInterval(reasoningIntervalRef.current)
+      reasoningIntervalRef.current = null
+    }
   }
+
+  // Thinking steps progression — continues through verdict until all steps shown
+  useEffect(() => {
+    if (phase === 'thinking' || phase === 'verdict') {
+      // Only reset if we just entered thinking phase
+      if (phase === 'thinking') {
+        setThinkingStep(0)
+      }
+
+      thinkingIntervalRef.current = setInterval(() => {
+        setThinkingStep(prev => {
+          const steps = reasoningSteps.length > 0 ? reasoningSteps : FALLBACK_STEPS
+          if (prev >= steps.length - 1) {
+            clearInterval(thinkingIntervalRef.current)
+            thinkingIntervalRef.current = null
+            return prev
+          }
+          return prev + 1
+        })
+      }, 800)
+    }
+
+    return () => {
+      if (thinkingIntervalRef.current) {
+        clearInterval(thinkingIntervalRef.current)
+        thinkingIntervalRef.current = null
+      }
+    }
+  }, [phase, reasoningSteps])
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col">
@@ -142,7 +296,7 @@ export default function Moderator({ onBack }) {
         )}
 
         {/* ── Input phase ───────────────────────────────── */}
-        {(phase === 'input' || phase === 'loading') && (
+        {phase === 'input' && (
           <div className="max-w-2xl mx-auto animate-slide-up">
             <div className="text-center mb-10">
               <p className="text-xs font-semibold tracking-[.2em] text-zinc-500 uppercase mb-3">AI Moderation</p>
@@ -158,7 +312,7 @@ export default function Moderator({ onBack }) {
                 value={content}
                 onChange={e => setContent(e.target.value)}
                 placeholder="Type a social media post, comment, or message…"
-                disabled={phase === 'loading'}
+                disabled={phase === 'loading' || phase === 'thinking'}
                 className="
                   w-full bg-zinc-800/50 border border-zinc-700 rounded-xl px-4 py-3
                   text-sm text-zinc-200 placeholder-zinc-600 resize-none
@@ -171,7 +325,7 @@ export default function Moderator({ onBack }) {
                 <select
                   value={platform}
                   onChange={e => setPlatform(e.target.value)}
-                  disabled={phase === 'loading'}
+                  disabled={phase === 'loading' || phase === 'thinking'}
                   className="
                     flex-1 bg-zinc-800/60 border border-zinc-700 rounded-xl px-3 py-2.5
                     text-sm text-zinc-300 focus:outline-none focus:border-indigo-500
@@ -185,7 +339,7 @@ export default function Moderator({ onBack }) {
 
                 <button
                   onClick={handleModerate}
-                  disabled={!content.trim() || phase === 'loading'}
+                  disabled={!content.trim() || phase === 'loading' || phase === 'thinking'}
                   className="
                     flex items-center gap-2 px-6 py-2.5 rounded-xl
                     bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm
@@ -193,11 +347,51 @@ export default function Moderator({ onBack }) {
                     shadow-[0_0_20px_rgba(99,102,241,.25)]
                   "
                 >
-                  {phase === 'loading'
-                    ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Analyzing…</>
-                    : <><Sparkles className="w-4 h-4" />Moderate</>
-                  }
+                  {(phase === 'loading' || phase === 'thinking') ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <><Sparkles className="w-4 h-4" /> Moderate</>
+                  )}
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Loading phase ─────────────────────────────── */}
+        {phase === 'loading' && (
+          <div className="max-w-2xl mx-auto animate-slide-up text-center">
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="w-16 h-16 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mb-6" />
+              <p className="text-zinc-400 text-sm">Initializing AI analysis...</p>
+            </div>
+          </div>
+        )}
+
+        {/* ── Thinking phase ────────────────────────────── */}
+        {phase === 'thinking' && (
+          <div className="max-w-2xl mx-auto animate-slide-up">
+            <div className="text-center mb-8">
+              <p className="text-xs font-semibold tracking-[.2em] text-zinc-500 uppercase mb-3">AI Analysis in Progress</p>
+              <h2 className="text-2xl font-bold text-zinc-100 mb-2">Thinking through your content</h2>
+              <p className="text-zinc-400 text-sm">Watch the AI analyze in real-time</p>
+            </div>
+
+            {/* Real-time detailed reasoning — streams as AI thinks */}
+            <div className="bg-gradient-to-r from-indigo-900/30 to-purple-900/30 border border-indigo-500/30 rounded-2xl p-6 min-h-[200px]">
+              <p className="text-zinc-200 text-sm leading-relaxed whitespace-pre-wrap">
+                {displayedReasoning}
+                <span className="inline-block w-2 h-4 bg-indigo-400 ml-1 animate-pulse" />
+              </p>
+            </div>
+
+            <div className="mt-6 text-center">
+              <div className="inline-flex items-center gap-2 text-xs text-zinc-500">
+                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
+                AI is analyzing your content...
               </div>
             </div>
           </div>
@@ -205,37 +399,95 @@ export default function Moderator({ onBack }) {
 
         {/* ── Verdict + rating phase ────────────────────── */}
         {(phase === 'verdict' || phase === 'submitting') && verdict && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-slide-up">
-            {/* Left — the post */}
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">Your Content</p>
-              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 mb-4">
-                <p className="text-zinc-200 text-sm leading-relaxed whitespace-pre-wrap">"{verdict.content}"</p>
-                <div className="mt-3 pt-3 border-t border-zinc-800 flex items-center gap-2">
-                  <span className="text-xs text-zinc-600">Platform:</span>
-                  <span className="text-xs text-zinc-400 capitalize">{verdict.platform?.replace(/_/g, ' ')}</span>
+          <div className="max-w-4xl mx-auto animate-slide-up">
+            {/* Reasoning steps — always shown on verdict */}
+            {reasoningSteps.length > 0 && (
+              <div className="mb-8">
+                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-4">Step-by-Step Analysis</p>
+                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+                  <div className="space-y-3">
+                    {reasoningSteps
+                      .filter(step => !step.toLowerCase().includes('determine') && !step.toLowerCase().includes('finaliz'))
+                      .map((stepText, index) => {
+                      // Determine icon based on step content keywords
+                      let iconType = 'default'
+                      const text = stepText.toLowerCase()
+                      if (text.includes('intent') || text.includes('analyzing')) iconType = 'intent'
+                      else if (text.includes('policy') || text.includes('violation') || text.includes('scanning')) iconType = 'policy'
+                      else if (text.includes('tone') || text.includes('context') || text.includes('evaluating')) iconType = 'tone'
+                      else if (text.includes('severity') || text.includes('assessing')) iconType = 'severity'
+                      else if (text.includes('final') || text.includes('decision') || text.includes('finalizing')) iconType = 'final'
+
+                      const Icon = STEP_ICONS[iconType] || Brain
+                      const isActive = index === thinkingStep
+                      const isCompleted = index < thinkingStep
+
+                      return (
+                        <div
+                          key={index}
+                          className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-500 ${
+                            isActive
+                              ? 'bg-indigo-500/10 border border-indigo-500/30 text-indigo-300'
+                              : isCompleted
+                              ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                              : 'bg-zinc-800/50 border border-zinc-700/50 text-zinc-600'
+                          }`}
+                        >
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                            isActive ? 'bg-indigo-500/20' : isCompleted ? 'bg-emerald-500/20' : 'bg-zinc-700/50'
+                          }`}>
+                            {isCompleted ? (
+                              <CheckSquare className="w-4 h-4" />
+                            ) : (
+                              <Icon className={`w-4 h-4 ${isActive ? 'animate-pulse' : ''}`} />
+                            )}
+                          </div>
+                          <span className={`text-sm ${isActive ? 'font-medium' : ''}`}>
+                            {stepText}
+                          </span>
+                          {isActive && (
+                            <div className="ml-auto w-5 h-5 border-2 border-indigo-400/30 border-t-indigo-400 rounded-full animate-spin" />
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               </div>
-              <button
-                onClick={reset}
-                className="flex items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-400 transition"
-              >
-                <RotateCcw className="w-3.5 h-3.5" /> Try different content
-              </button>
-            </div>
+            )}
 
-            {/* Right — AI verdict + rating */}
-            <div className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Left — the post */}
               <div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">AI Verdict</p>
-                <AIVerdict verdict={verdict} />
+                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">Your Content</p>
+                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 mb-4">
+                  <p className="text-zinc-200 text-sm leading-relaxed whitespace-pre-wrap">"{verdict.content}"</p>
+                  <div className="mt-3 pt-3 border-t border-zinc-800 flex items-center gap-2">
+                    <span className="text-xs text-zinc-600">Platform:</span>
+                    <span className="text-xs text-zinc-400 capitalize">{verdict.platform?.replace(/_/g, ' ')}</span>
+                  </div>
+                </div>
+                <button
+                  onClick={reset}
+                  className="flex items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-400 transition"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" /> Try different content
+                </button>
               </div>
-              <div>
-                <RatingWidget
-                  decision={verdict.decision}
-                  onSubmit={handleFeedback}
-                  loading={phase === 'submitting'}
-                />
+
+              {/* Right — AI verdict + rating */}
+              <div className="space-y-5">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500 mb-3">AI Verdict</p>
+                  <AIVerdict verdict={verdict} />
+                </div>
+                <div>
+                  <RatingWidget
+                    decision={verdict.decision}
+                    onSubmit={handleFeedback}
+                    loading={phase === 'submitting'}
+                  />
+                </div>
               </div>
             </div>
           </div>
