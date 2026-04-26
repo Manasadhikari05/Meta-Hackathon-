@@ -1,19 +1,27 @@
 import { useEffect, useState, useMemo } from 'react'
-import { ChevronLeft, BarChart3, RefreshCw, AlertCircle } from 'lucide-react'
+import { ChevronLeft, BarChart3, RefreshCw, AlertCircle, Sparkles } from 'lucide-react'
 import {
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   Legend,
   ResponsiveContainer,
+  Area,
+  AreaChart,
+  ReferenceDot,
 } from 'recharts'
 
 function metricsUrl() {
   const raw = (import.meta.env.VITE_BACKEND_URL || '').trim().replace(/\/$/, '')
   return raw ? `${raw}/training/metrics` : '/api/training/metrics'
+}
+
+function fmt(n, digits = 3) {
+  if (n === null || n === undefined || Number.isNaN(n)) return '—'
+  return Number(n).toFixed(digits)
 }
 
 export default function TrainingMetrics({ onBack }) {
@@ -39,22 +47,23 @@ export default function TrainingMetrics({ onBack }) {
     load()
   }, [])
 
-  const chartRows = useMemo(() => {
-    if (!data?.before || !data?.after) return []
-    const b = data.before
-    const a = data.after
-    return [
-      { name: 'Mean reward', before: b.mean_reward, after: a.mean_reward },
-      { name: 'Decision accuracy', before: b.decision_accuracy, after: a.decision_accuracy },
-      {
-        name: 'Latency (ms)',
-        before: Math.round(b.mean_latency_ms || 0),
-        after: Math.round(a.mean_latency_ms || 0),
-      },
-    ]
-  }, [data])
+  const iters = data?.iterations || []
+  const rows = useMemo(
+    () =>
+      iters.map((it) => ({
+        step: it.step,
+        label: it.label,
+        reward: Number(it.mean_reward),
+        accuracy: Number(it.decision_accuracy) * 100,
+        latency: Math.round(it.mean_latency_ms || 0),
+        real: it.real_measurement ? 1 : 0,
+      })),
+    [iters]
+  )
 
   const eff = data?.efficiency
+  const finalRow = rows[rows.length - 1]
+  const firstRow = rows[0]
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -69,7 +78,7 @@ export default function TrainingMetrics({ onBack }) {
           </button>
           <div className="flex items-center gap-2 text-sm font-semibold text-zinc-100">
             <BarChart3 className="w-4 h-4 text-indigo-400" />
-            RL training — before vs after
+            RL training trajectory
           </div>
           <button
             type="button"
@@ -97,16 +106,13 @@ export default function TrainingMetrics({ onBack }) {
               <p className="font-medium text-amber-100">No metrics file yet</p>
               <p className="text-sm text-amber-200/80 mt-1">{data.message}</p>
               <pre className="mt-3 text-xs bg-zinc-900/80 rounded-md p-3 text-zinc-400 overflow-x-auto">
-                python scripts/rl_trainer.py eval-comparison --best-of 4 --limit 40
+                python scripts/_run_demo.py
               </pre>
-              <p className="text-xs text-zinc-500 mt-2">
-                Or open <code className="text-indigo-300">RLtrainer.ipynb</code> at the repo root and run all cells.
-              </p>
             </div>
           </div>
         )}
 
-        {data?.loaded && data.before && data.after && (
+        {data?.loaded && rows.length > 0 && (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
@@ -122,11 +128,9 @@ export default function TrainingMetrics({ onBack }) {
                 </div>
               </div>
               <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
-                <div className="text-xs uppercase tracking-wide text-zinc-500">Policies</div>
-                <div className="text-sm text-zinc-300 mt-1">
-                  <span className="text-indigo-400">Before:</span> {data.before.policy}
-                  <br />
-                  <span className="text-emerald-400">After:</span> {data.after.policy}
+                <div className="text-xs uppercase tracking-wide text-zinc-500">Iterations</div>
+                <div className="text-sm font-medium text-zinc-200 mt-1">
+                  {rows.length} steps · {rows.filter((r) => r.real).length} real measurements
                 </div>
               </div>
             </div>
@@ -134,10 +138,13 @@ export default function TrainingMetrics({ onBack }) {
             {eff && (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
-                  <div className="text-xs text-zinc-500">Reward gain</div>
+                  <div className="text-xs text-zinc-500">Reward gain (start → end)</div>
                   <div className="text-2xl font-semibold text-emerald-400 tabular-nums">
                     {eff.mean_reward_delta >= 0 ? '+' : ''}
                     {eff.mean_reward_delta}
+                  </div>
+                  <div className="text-[11px] text-zinc-500 mt-1">
+                    {fmt(firstRow?.reward)} → {fmt(finalRow?.reward)}
                   </div>
                 </div>
                 <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-4">
@@ -146,49 +153,197 @@ export default function TrainingMetrics({ onBack }) {
                     {eff.accuracy_delta_pp >= 0 ? '+' : ''}
                     {eff.accuracy_delta_pp}
                   </div>
+                  <div className="text-[11px] text-zinc-500 mt-1">
+                    {fmt(firstRow?.accuracy, 1)}% → {fmt(finalRow?.accuracy, 1)}%
+                  </div>
                 </div>
                 <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
-                  <div className="text-xs text-zinc-500">Latency ratio (after / before)</div>
+                  <div className="text-xs text-zinc-500">Compute cost (latency)</div>
                   <div className="text-2xl font-semibold text-amber-200 tabular-nums">
                     {eff.latency_ratio}x
                   </div>
                   <div className="text-[11px] text-zinc-500 mt-1">
-                    Best-of-N trades compute for quality; LoRA + greedy can lower this again.
+                    LLM trades latency for quality; LoRA SFT brings it back down.
                   </div>
                 </div>
               </div>
             )}
 
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 p-4 h-[360px]">
-              <div className="text-sm font-medium text-zinc-300 mb-3">Before vs after (same eval set)</div>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartRows} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 p-4 h-[380px]">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="w-4 h-4 text-emerald-400" />
+                <div className="text-sm font-medium text-zinc-300">
+                  Mean reward & decision accuracy across training rollouts
+                </div>
+              </div>
+              <ResponsiveContainer width="100%" height="92%">
+                <AreaChart data={rows} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="rewardFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#22c55e" stopOpacity={0.4} />
+                      <stop offset="100%" stopColor="#22c55e" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="accFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#6366f1" stopOpacity={0.3} />
+                      <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" />
-                  <XAxis dataKey="name" tick={{ fill: '#a1a1aa', fontSize: 11 }} />
-                  <YAxis tick={{ fill: '#a1a1aa', fontSize: 11 }} />
+                  <XAxis
+                    dataKey="step"
+                    tick={{ fill: '#a1a1aa', fontSize: 11 }}
+                    label={{
+                      value: 'training rollout',
+                      position: 'insideBottom',
+                      offset: -4,
+                      fill: '#71717a',
+                      fontSize: 11,
+                    }}
+                  />
+                  <YAxis
+                    yAxisId="reward"
+                    tick={{ fill: '#a1a1aa', fontSize: 11 }}
+                    domain={[0, 1]}
+                    tickFormatter={(v) => v.toFixed(2)}
+                  />
+                  <YAxis
+                    yAxisId="acc"
+                    orientation="right"
+                    tick={{ fill: '#a1a1aa', fontSize: 11 }}
+                    domain={[0, 100]}
+                    tickFormatter={(v) => `${v.toFixed(0)}%`}
+                  />
                   <Tooltip
-                    contentStyle={{ background: '#18181b', border: '1px solid #3f3f46', borderRadius: 8 }}
+                    contentStyle={{
+                      background: '#18181b',
+                      border: '1px solid #3f3f46',
+                      borderRadius: 8,
+                    }}
                     labelStyle={{ color: '#e4e4e7' }}
+                    formatter={(value, key) => {
+                      if (key === 'reward') return [Number(value).toFixed(3), 'Mean reward']
+                      if (key === 'accuracy')
+                        return [`${Number(value).toFixed(1)}%`, 'Decision accuracy']
+                      return [value, key]
+                    }}
+                    labelFormatter={(step) => {
+                      const r = rows.find((x) => x.step === step)
+                      return r ? `Step ${step} — ${r.label}` : `Step ${step}`
+                    }}
                   />
                   <Legend />
-                  <Bar dataKey="before" name="Before" fill="#6366f1" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="after" name="After" fill="#22c55e" radius={[4, 4, 0, 0]} />
-                </BarChart>
+                  <Area
+                    yAxisId="reward"
+                    type="monotone"
+                    dataKey="reward"
+                    stroke="#22c55e"
+                    strokeWidth={2.5}
+                    fill="url(#rewardFill)"
+                    name="Mean reward"
+                    dot={{ r: 3, fill: '#22c55e' }}
+                    activeDot={{ r: 5 }}
+                  />
+                  <Area
+                    yAxisId="acc"
+                    type="monotone"
+                    dataKey="accuracy"
+                    stroke="#6366f1"
+                    strokeWidth={2.5}
+                    fill="url(#accFill)"
+                    name="Decision accuracy (%)"
+                    dot={{ r: 3, fill: '#6366f1' }}
+                    activeDot={{ r: 5 }}
+                  />
+                  {rows
+                    .filter((r) => r.real)
+                    .map((r) => (
+                      <ReferenceDot
+                        key={`anchor-${r.step}`}
+                        yAxisId="reward"
+                        x={r.step}
+                        y={r.reward}
+                        r={6}
+                        stroke="#fbbf24"
+                        strokeWidth={2}
+                        fill="#fbbf24"
+                        isFront
+                      />
+                    ))}
+                </AreaChart>
               </ResponsiveContainer>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div className="rounded-xl border border-zinc-800 p-4">
-                <div className="text-xs uppercase text-zinc-500 mb-2">Before snapshot</div>
-                <pre className="text-xs text-zinc-400 overflow-x-auto whitespace-pre-wrap">
-                  {JSON.stringify(data.before, null, 2)}
-                </pre>
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 p-4 h-[260px]">
+              <div className="text-sm font-medium text-zinc-300 mb-3">
+                Latency per decision (ms) — compute trade-off
               </div>
-              <div className="rounded-xl border border-zinc-800 p-4">
-                <div className="text-xs uppercase text-zinc-500 mb-2">After snapshot</div>
-                <pre className="text-xs text-zinc-400 overflow-x-auto whitespace-pre-wrap">
-                  {JSON.stringify(data.after, null, 2)}
-                </pre>
+              <ResponsiveContainer width="100%" height="86%">
+                <LineChart data={rows} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" />
+                  <XAxis dataKey="step" tick={{ fill: '#a1a1aa', fontSize: 11 }} />
+                  <YAxis tick={{ fill: '#a1a1aa', fontSize: 11 }} />
+                  <Tooltip
+                    contentStyle={{
+                      background: '#18181b',
+                      border: '1px solid #3f3f46',
+                      borderRadius: 8,
+                    }}
+                    labelStyle={{ color: '#e4e4e7' }}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="latency"
+                    stroke="#f59e0b"
+                    strokeWidth={2.5}
+                    name="Latency (ms / decision)"
+                    dot={{ r: 3, fill: '#f59e0b' }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
+              <div className="text-sm font-medium text-zinc-300 mb-3">
+                Per-step ablation cascade
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead className="text-zinc-500">
+                    <tr className="border-b border-zinc-800">
+                      <th className="py-2 px-2 text-left">step</th>
+                      <th className="py-2 px-2 text-left">policy slice</th>
+                      <th className="py-2 px-2 text-right">reward</th>
+                      <th className="py-2 px-2 text-right">accuracy</th>
+                      <th className="py-2 px-2 text-right">latency (ms)</th>
+                      <th className="py-2 px-2 text-center">measured?</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-zinc-300">
+                    {rows.map((r) => (
+                      <tr key={r.step} className="border-b border-zinc-800/60">
+                        <td className="py-1.5 px-2 tabular-nums text-zinc-500">{r.step}</td>
+                        <td className="py-1.5 px-2">{r.label}</td>
+                        <td className="py-1.5 px-2 text-right tabular-nums">
+                          {fmt(r.reward)}
+                        </td>
+                        <td className="py-1.5 px-2 text-right tabular-nums">
+                          {fmt(r.accuracy, 1)}%
+                        </td>
+                        <td className="py-1.5 px-2 text-right tabular-nums text-amber-300/80">
+                          {r.latency.toLocaleString()}
+                        </td>
+                        <td className="py-1.5 px-2 text-center">
+                          {r.real ? (
+                            <span className="text-amber-300">● real</span>
+                          ) : (
+                            <span className="text-zinc-600">projected</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
 
