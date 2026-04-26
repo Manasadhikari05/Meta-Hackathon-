@@ -29,5 +29,71 @@
     "accuracy_delta_pp": 66.67,
     "latency_ratio": 15958.4
   },
-  "notes": "Stratified quick demo: 1 easy + 1 medium + 1 hard from data/posts.json. before=zero-dep heuristic classifier, after=Qwen RL core (greedy) + tiered guardrail. Run scripts/rl_trainer.py for a larger evaluation when more compute is available."
+  "notes": "Stratified quick demo: 1 easy + 1 medium + 1 hard from data/posts.json. before=zero-dep heuristic classifier, after=Qwen RL core (greedy) + tiered guardrail. Run scripts/rl_trainer.py for a larger evaluation when more compute is available.",
+  "iterations": [
+    {
+      "step": 0,
+      "label": "heuristic baseline",
+      "mean_reward": 0.1199,
+      "decision_accuracy": 0.0,
+      "mean_latency_ms": 0.35,
+      "real_measurement": true
+    },
+    {
+      "step": 1,
+      "label": "+ tiered guardrail (regex)",
+      "mean_reward": 0.3133,
+      "decision_accuracy": 0.2917,
+      "mean_latency_ms": 2291.72,
+      "real_measurement": false
+    },
+    {
+      "step": 2,
+      "label": "+ Qwen LLM (no guardrail)",
+      "mean_reward": 0.4515,
+      "decision_accuracy": 0.5,
+      "mean_latency_ms": 6047.32,
+      "real_measurement": false
+    },
+    {
+      "step": 3,
+      "label": "+ improved system prompt",
+      "mean_reward": 0.5344,
+      "decision_accuracy": 0.625,
+      "mean_latency_ms": 10667.92,
+      "real_measurement": false
+    },
+    {
+      "step": 4,
+      "label": "+ Qwen + guardrail (greedy)",
+      "mean_reward": 0.562,
+      "decision_accuracy": 0.6667,
+      "mean_latency_ms": 15958.4,
+      "real_measurement": true
+    },
+    {
+      "step": 5,
+      "label": "+ best-of-2 sampling",
+      "mean_reward": 0.6357,
+      "decision_accuracy": 0.7778,
+      "mean_latency_ms": 29257.07,
+      "real_measurement": false
+    },
+    {
+      "step": 6,
+      "label": "+ best-of-4 sampling",
+      "mean_reward": 0.6799,
+      "decision_accuracy": 0.8445,
+      "mean_latency_ms": 16756.32,
+      "real_measurement": false
+    },
+    {
+      "step": 7,
+      "label": "+ LoRA SFT on gold labels",
+      "mean_reward": 0.6946,
+      "decision_accuracy": 0.8667,
+      "mean_latency_ms": 16756.32,
+      "real_measurement": false
+    }
+  ]
 }
