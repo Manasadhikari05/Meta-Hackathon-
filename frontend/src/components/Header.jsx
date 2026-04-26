@@ -1,6 +1,12 @@
-import { Shield, LayoutDashboard } from 'lucide-react'
+import { Shield, LayoutDashboard, Radio } from 'lucide-react'
 
-export default function Header({ onAnalyzeModels, onNavigate, onEnterApp, onEnterDashboard }) {
+export default function Header({
+  onAnalyzeModels,
+  onNavigate,
+  onEnterApp,
+  onEnterDashboard,
+  onEnterLiveDiscord,
+}) {
   return (
     <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -28,6 +34,20 @@ export default function Header({ onAnalyzeModels, onNavigate, onEnterApp, onEnte
             >
               <LayoutDashboard className="w-4 h-4 inline-block mr-1 mb-0.5" />
               Dashboard
+            </button>
+          )}
+          {onEnterLiveDiscord && (
+            <button
+              type="button"
+              onClick={onEnterLiveDiscord}
+              className="hidden md:inline-flex items-center gap-2 text-gray-800 border border-emerald-200 bg-emerald-50/80 text-sm px-4 py-2 rounded-lg hover:bg-emerald-100 transition"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
+              <Radio className="w-4 h-4 text-emerald-700" />
+              LIVE DISCORD
             </button>
           )}
           {onEnterApp && (

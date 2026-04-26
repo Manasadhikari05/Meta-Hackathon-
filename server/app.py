@@ -1,3 +1,4 @@
+import asyncio
 import json
 import sys
 import threading
@@ -9,12 +10,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from env.env import ContentModerationEnv
 from env.models import ModerationAction
+from server.discord_bot import discord_service
+from server import discord_live_hub as live_hub
 
 app = FastAPI(title="Content Moderation OpenEnv")
 
@@ -152,6 +155,86 @@ def submit_feedback(req: FeedbackRequest):
 def get_history():
     """Return all past moderation decisions with user ratings, newest first."""
     return list(reversed(_feedback_store))
+
+
+class DiscordActionRequest(BaseModel):
+    action: str = Field(..., description="accept | delete | escalate | flag")
+
+
+def _prewarm_rl_classifier():
+    """Eagerly load the local Qwen / RL model in a background thread so the
+    first Discord message doesn't pay the model-load cost (and so we surface
+    load failures in the server log immediately).
+    """
+    import os
+    if str(os.getenv("USE_LOCAL_LLM", "false")).strip().lower() not in ("true", "1", "yes", "y"):
+        return
+    if os.getenv("DISCORD_CLASSIFIER", "").strip().lower() not in ("rl", "auto"):
+        return
+
+    def _load():
+        try:
+            print("[startup] pre-warming RL core (importing inference)…")
+            import inference  # noqa: F401  (imports trigger model load)
+            print("[startup] RL core ready (model =", getattr(inference, "HF_MODEL_ID", "?"), ")")
+        except Exception as exc:
+            print(f"[startup] RL core failed to load: {exc}. "
+                  f"Discord classifier will fall back to moderator/heuristic.")
+
+    threading.Thread(target=_load, name="prewarm-rl", daemon=True).start()
+
+
+@app.on_event("startup")
+async def startup_discord_and_live_hub():
+    live_hub.set_main_loop(asyncio.get_running_loop())
+    discord_service.start()
+    _prewarm_rl_classifier()
+
+
+@app.websocket("/ws/discord/live")
+async def discord_live_websocket(websocket: WebSocket):
+    await websocket.accept()
+    await live_hub.register(websocket)
+    try:
+        await websocket.send_json(
+            {"type": "hello", "discord": discord_service.status()}
+        )
+        # Replay recent in-memory records so the UI is not empty after refresh.
+        records = discord_service.get_records(pending_only=False)
+        records = sorted(records, key=lambda r: r.get("created_at", ""))[-100:]
+        for rec in records:
+            await websocket.send_json(
+                {"type": "discord_moderation", "record": rec, "replay": True}
+            )
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        pass
+    finally:
+        await live_hub.unregister(websocket)
+
+
+@app.get("/discord/status")
+def discord_status():
+    return discord_service.status()
+
+
+@app.get("/discord/reviews")
+def discord_reviews(pending_only: bool = False):
+    return {"items": discord_service.get_records(pending_only=pending_only)}
+
+
+@app.post("/discord/review/{message_id}")
+def discord_review_action(message_id: int, req: DiscordActionRequest):
+    try:
+        record = discord_service.apply_action(message_id=message_id, action=req.action)
+        return {"ok": True, "record": record}
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"discord action failed: {exc}")
 
 
 def main():

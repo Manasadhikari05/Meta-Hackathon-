@@ -97,30 +97,46 @@ DECISION_MAP = {
     "reject": "remove", "ban": "remove",
 }
 
-SYSTEM_PROMPT = """You classify social media posts for content moderation. Output valid JSON only — no markdown, no extra text.
+SYSTEM_PROMPT = """You are a content-moderation classifier. Read the user's message and output ONE line of valid JSON. No markdown. No prose. Nothing else.
 
-Format:
-{"decision":"<approve|remove|escalate>","reason_code":"<hate_speech|harassment|spam|misinformation|self_harm|violence|sexual_content|clean>","severity":"<low|medium|high>","confidence":<0.0-1.0>,"explanation":"<brief reason, under 10 words>"}
+JSON schema (all keys required):
+{"decision":"approve|remove|escalate","reason_code":"hate_speech|harassment|spam|misinformation|self_harm|violence|sexual_content|clean","severity":"low|medium|high","confidence":0.0-1.0,"explanation":"<= 12 words"}
 
-Guidelines:
-- spam, scams, promo → remove (spam)
-- direct insults, personal attacks → remove (harassment)
-- hate targeting groups → remove (hate_speech)
-- threats → remove (violence)
-- self-harm encouragement → remove (self_harm)
-- explicit/sexual → remove (sexual_content)
-- misinfo, false claims → remove (misinformation)
-- sarcasm, mocking, passive-aggressive → escalate (harassment)
-- borderline rude, dismissive → escalate (harassment)
-- obfuscated stuff (l33t, symbols) → read through it, classify the intent
-- safe, constructive → approve (clean)
+DEFAULT: most messages are normal chat — output `approve` with reason_code `clean`. Only flag if the message clearly matches one of the rules below.
 
-When in doubt, escalate. Don't approve anything borderline.
-Words like "dumb", "trash", "stupid" aimed at a person → escalate at minimum.
+REMOVE (clear, hard violations):
+- targeted slurs / hate against a group → hate_speech, high
+- direct personal insult or harassment ("you are an idiot", "shut up loser") → harassment, medium/high
+- credible threat of violence ("I'll kill you") → violence, high
+- explicit sexual content → sexual_content, high
+- spam / scam / phishing links / promo → spam, medium
+- explicit self-harm encouragement ("kys", "go kill yourself") → self_harm, high
+- clearly false dangerous claims (medical/political misinfo) → misinformation, medium
 
-Severity: low = minor, medium = borderline toxic, high = clearly harmful.
+ESCALATE (ambiguous, needs human review):
+- borderline insult, sarcasm aimed at someone, mild toxicity that isn't a clean attack → harassment, low/medium
+- self-harm phrasing that may be a cry for help, not an attack → self_harm, medium
+- ambiguous threat or violence reference (joke vs serious) → violence, medium
 
-Always output JSON. No commentary."""
+APPROVE (the default):
+- greetings: "hi", "hello", "hey", "yo", "gm"
+- normal chat: "lets play tonight", "anyone here", "lol", "thanks"
+- casual swearing not aimed at anyone: "wtf this game is fun", "shit that's cool"
+- questions, opinions, jokes that are not harmful
+- gibberish / typos / random characters → approve, clean
+
+Severity: low = trivial, medium = noticeably toxic, high = clearly harmful.
+
+Examples (MESSAGE → JSON):
+"hello everyone" → {"decision":"approve","reason_code":"clean","severity":"low","confidence":0.95,"explanation":"greeting"}
+"lets party tonight" → {"decision":"approve","reason_code":"clean","severity":"low","confidence":0.95,"explanation":"casual chat"}
+"hey ehy" → {"decision":"approve","reason_code":"clean","severity":"low","confidence":0.9,"explanation":"casual greeting"}
+"you are stupid" → {"decision":"escalate","reason_code":"harassment","severity":"medium","confidence":0.8,"explanation":"mild personal insult"}
+"i'll kill you tomorrow" → {"decision":"remove","reason_code":"violence","severity":"high","confidence":0.95,"explanation":"direct threat"}
+"buy crypto at scamlink.com" → {"decision":"remove","reason_code":"spam","severity":"medium","confidence":0.9,"explanation":"spam link"}
+"gm" → {"decision":"approve","reason_code":"clean","severity":"low","confidence":0.9,"explanation":"good morning"}
+
+Output ONE JSON object. No commentary, no code fences."""
 
 
 def _extract_json(text):
@@ -214,19 +230,40 @@ FALLBACK_ACTION = {
 }
 
 
+def _build_local_inputs(prompt):
+    """Build tokenized inputs using the model's own chat template if available.
+
+    This works for Qwen, Llama-3, Mistral-Instruct, etc. without hardcoding any
+    one model's special tokens. Falls back to the older Mistral [INST] form if
+    the tokenizer has no chat template (older Mistral checkpoints).
+    """
+    use_template = getattr(tokenizer, "chat_template", None)
+    if use_template:
+        messages = [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": prompt},
+        ]
+        text = tokenizer.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True
+        )
+    else:
+        text = f"[INST] {SYSTEM_PROMPT}\n\n{prompt} [/INST]"
+    return tokenizer(text, return_tensors="pt").to(model.device)
+
+
 def _call_llm(prompt):
     """Call model with retries. Always returns a valid action dict."""
     if USE_LOCAL_LLM:
         try:
-            full_prompt = f"[INST] {SYSTEM_PROMPT}\n\n{prompt} [/INST]"
-            inputs = tokenizer(full_prompt, return_tensors="pt").to(model.device)
-            
+            inputs = _build_local_inputs(prompt)
+
             outputs = model.generate(
                 **inputs,
-                max_new_tokens=120,
-                do_sample=False
+                max_new_tokens=160,
+                do_sample=False,
+                pad_token_id=getattr(tokenizer, "pad_token_id", None) or tokenizer.eos_token_id,
             )
-            
+
             new_tokens = outputs[0][inputs["input_ids"].shape[1]:]
             raw_text = tokenizer.decode(new_tokens, skip_special_tokens=True)
             

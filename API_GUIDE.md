@@ -449,3 +449,44 @@ curl -X POST "http://localhost:7860/reset?task_id=task1"
 |--------|------|
 | `422 Unprocessable Entity` | Invalid `task_id` on `/reset`, or malformed action body |
 | `500 Internal Server Error` | Calling `/step` after episode is done without resetting |
+
+---
+
+## Discord moderation endpoints
+
+The Discord bot auto-moderates new server messages using your existing moderation model, then you can override decisions via API.
+
+### Environment variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DISCORD_BOT_TOKEN` | *(empty)* | Bot token from Discord Developer Portal |
+| `DISCORD_MOD_LOG_CHANNEL_ID` | *(empty)* | Optional channel ID for escalated-message logs |
+
+### `GET /discord/status`
+
+Returns whether the bot is enabled/connected and how many messages are tracked.
+
+### `GET /discord/reviews?pending_only=true`
+
+Returns AI moderation records for Discord messages.
+
+- `pending_only=true`: only escalated messages waiting review
+- `pending_only=false`: all tracked records
+
+### `POST /discord/review/{message_id}`
+
+Applies a manual moderation decision to a Discord message.
+
+```json
+{
+  "action": "delete"
+}
+```
+
+Allowed `action` values:
+
+- `accept` (keep the message, clear flag)
+- `delete` (delete message from Discord)
+- `escalate` (flag message with reaction)
+- `flag` (alias of `escalate`)

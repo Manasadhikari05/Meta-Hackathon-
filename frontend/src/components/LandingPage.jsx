@@ -114,7 +114,7 @@ const LLMLogos = () => (
   </>
 );
 
-export default function LandingPage({ onEnterApp, onEnterDashboard }) {
+export default function LandingPage({ onEnterApp, onEnterDashboard, onEnterLiveDiscord }) {
   const [showBenchmarkModal, setShowBenchmarkModal] = useState(false);
   const [activeFeature, setActiveFeature] = useState(null);
 
@@ -233,6 +233,7 @@ export default function LandingPage({ onEnterApp, onEnterDashboard }) {
         }}
         onEnterApp={onEnterApp}
         onEnterDashboard={onEnterDashboard}
+        onEnterLiveDiscord={onEnterLiveDiscord}
       />
 
       {/* Hero Section */}
@@ -244,7 +245,7 @@ export default function LandingPage({ onEnterApp, onEnterDashboard }) {
           <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed mb-10">
             Protect your community with our state-of-the-art AI content moderation system. Explore the interactive OpenEnv RL dashboard or test the AI Moderator in real-time.
           </p>
-          <div className="flex items-center justify-center gap-4 mb-6">
+          <div className="flex flex-wrap items-center justify-center gap-4 mb-6">
             <button
               onClick={onEnterDashboard}
               className="inline-flex items-center gap-2 bg-gray-900 text-white px-8 py-3.5 rounded-2xl text-sm font-semibold hover:bg-gray-700 transition-all duration-200 shadow-lg hover:shadow-xl"
@@ -258,6 +259,19 @@ export default function LandingPage({ onEnterApp, onEnterDashboard }) {
             >
               Try AI Moderator
             </button>
+            {onEnterLiveDiscord && (
+              <button
+                type="button"
+                onClick={onEnterLiveDiscord}
+                className="inline-flex items-center gap-2 border border-emerald-200 bg-emerald-50 text-emerald-900 px-6 py-3.5 rounded-2xl text-sm font-semibold hover:bg-emerald-100 transition-all duration-200"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
+                LIVE DISCORD
+              </button>
+            )}
           </div>
         </div>
 
