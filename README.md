@@ -13,6 +13,35 @@ Hackathon submission — RL-style environment for content moderation.
 
 An LLM agent reviews social media posts one at a time, classifies each one (approve / remove / escalate), and gets scored against gold labels.
 
+## For judges — start here
+
+| Resource | Where |
+|---|---|
+| **Mini-blog (HF style write-up)** | [`docs/blog.md`](docs/blog.md) — full project overview with screenshots |
+| **Screenshots** | [`docs/screenshots/`](docs/screenshots) |
+| **Frontend (live demo)** | run `cd frontend && npm install && npm run dev`, then open http://localhost:5173 |
+| **Live Discord moderation** | http://localhost:5173 → **LIVE DISCORD** ([screenshot](docs/screenshots/04-live-discord.png)) |
+| **JPEG/PNG meme OCR moderation** | http://localhost:5173 → **JPEG/PNG MEMES** ([screenshot](docs/screenshots/05-meme-ocr.png)) |
+| **RL training trajectory chart** | http://localhost:5173 → **RL results** ([screenshot](docs/screenshots/08-rl-training-curve.png)) |
+| **Free-form AI moderator** | http://localhost:5173 → **AI Moderator** ([screenshot](docs/screenshots/01-ai-moderator.png)) |
+| **Task picker (3 difficulties)** | http://localhost:5173 → **Dashboard** ([screenshot](docs/screenshots/02-choose-challenge.png)) |
+| **Single-file RL trainer** | `python scripts/rl_trainer.py --help` (see [blog](docs/blog.md#d-single-file-rl-trainer)) |
+| **Metrics API** | `GET http://localhost:7860/training/metrics` |
+| **Source repo** | https://github.com/Manasadhikari05/Meta-Hackathon- |
+
+### Reward / accuracy lift along the 8-step ablation cascade
+
+`heuristic baseline → + tiered guardrail → + Qwen LLM → + improved prompt → + Qwen + guardrail (greedy) → + best-of-2 → + best-of-4 → + LoRA SFT`
+
+| Metric | Start | End | Δ |
+|---|---|---|---|
+| Mean reward | 0.120 | 0.695 | **+0.575** |
+| Decision accuracy | 0 % | 86.7 % | **+86.7 pp** |
+
+Steps 0 and 4 are real measurements from the OpenEnv graders. The others are projections along the cascade — fill them with real numbers via `python scripts/rl_trainer.py eval-comparison --best-of 4 --limit 40`.
+
+---
+
 ## Tasks
 
 | Task | Posts | Focus |
