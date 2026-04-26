@@ -1,0 +1,6 @@
+# Optional: LoRA / notebook training (install on top of requirements.txt)
+peft>=0.11.0
+accelerate>=0.26.0
+datasets>=2.16.0
+jupyter>=1.0.0
+ipykernel>=6.29.0

@@ -77,3 +77,15 @@ Set these in `.env`:
 ```bash
 pytest tests/ -v
 ```
+
+## RL-style training & before/after metrics
+
+1. **Notebook:** open `RLtrainer.ipynb` at the repo root — evaluates the same Qwen policy as production on `data/posts.json`, writes **greedy vs best-of-N** curves to `results/rl_training_metrics.json`.
+2. **CLI (same output):**  
+   `python scripts/rl_trainer.py eval-comparison --best-of 4 --limit 40`
+3. **Optional weight update (LoRA BC):** install extras `pip install -r requirements-train.txt`, then  
+   `python -m training.lora_sft --output-dir ./output/qwen-mod-lora`  
+   Set `HF_ADAPTER_PATH` in `.env` and restart uvicorn so `inference.py` merges the adapter.
+4. **Frontend:** open **RL training results** from the landing header or dashboard — charts read `GET /training/metrics`.
+
+*Best-of-N is test-time policy improvement (more forward passes, no gradient step). LoRA is supervised fine-tuning on gold labels — closer to offline RL / BC than online PPO.*

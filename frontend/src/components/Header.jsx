@@ -1,4 +1,4 @@
-import { Shield, LayoutDashboard, Radio, Image as ImageIcon } from 'lucide-react'
+import { Shield, LayoutDashboard, Radio, Image as ImageIcon, BarChart3 } from 'lucide-react'
 
 export default function Header({
   onAnalyzeModels,
@@ -7,6 +7,7 @@ export default function Header({
   onEnterDashboard,
   onEnterLiveDiscord,
   onEnterMemeMod,
+  onEnterTrainingMetrics,
 }) {
   return (
     <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-100">
@@ -59,6 +60,16 @@ export default function Header({
             >
               <ImageIcon className="w-4 h-4 text-violet-700" />
               JPEG/PNG MEMES
+            </button>
+          )}
+          {onEnterTrainingMetrics && (
+            <button
+              type="button"
+              onClick={onEnterTrainingMetrics}
+              className="hidden md:inline-flex items-center gap-2 text-indigo-900 border border-indigo-200 bg-indigo-50/80 text-sm px-4 py-2 rounded-lg hover:bg-indigo-100 transition"
+            >
+              <BarChart3 className="w-4 h-4 text-indigo-700" />
+              RL results
             </button>
           )}
           {onEnterApp && (

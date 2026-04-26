@@ -1,0 +1,33 @@
+{
+  "loaded": true,
+  "updated_at": "2026-04-26T10:52:56Z",
+  "model_id": "Qwen/Qwen2.5-0.5B-Instruct",
+  "before": {
+    "policy": "greedy",
+    "label": "heuristic_baseline",
+    "n_posts": 3,
+    "mean_reward": 0.1199,
+    "decision_accuracy": 0.0,
+    "mean_latency_ms": 0.35,
+    "total_llm_calls": 3,
+    "wall_clock_ms": 1.22,
+    "model_id": "heuristic_v1"
+  },
+  "after": {
+    "policy": "greedy",
+    "label": "qwen_greedy",
+    "n_posts": 3,
+    "mean_reward": 0.562,
+    "decision_accuracy": 0.6667,
+    "mean_latency_ms": 15958.4,
+    "total_llm_calls": 3,
+    "wall_clock_ms": 47948.91,
+    "model_id": "Qwen/Qwen2.5-0.5B-Instruct"
+  },
+  "efficiency": {
+    "mean_reward_delta": 0.4421,
+    "accuracy_delta_pp": 66.67,
+    "latency_ratio": 15958.4
+  },
+  "notes": "Stratified quick demo: 1 easy + 1 medium + 1 hard from data/posts.json. before=zero-dep heuristic classifier, after=Qwen RL core (greedy) + tiered guardrail. Run scripts/rl_trainer.py for a larger evaluation when more compute is available."
+}
