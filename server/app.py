@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, File, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -18,6 +18,8 @@ from env.env import ContentModerationEnv
 from env.models import ModerationAction
 from server.discord_bot import discord_service
 from server import discord_live_hub as live_hub
+from server import ocr_service
+from server.meme_classifier import classify_meme_text
 
 app = FastAPI(title="Content Moderation OpenEnv")
 
@@ -184,11 +186,17 @@ def _prewarm_rl_classifier():
     threading.Thread(target=_load, name="prewarm-rl", daemon=True).start()
 
 
+def _prewarm_ocr():
+    """Pre-load EasyOCR in a background thread so the first /ocr/moderate is fast."""
+    threading.Thread(target=ocr_service.warm, name="prewarm-ocr", daemon=True).start()
+
+
 @app.on_event("startup")
 async def startup_discord_and_live_hub():
     live_hub.set_main_loop(asyncio.get_running_loop())
     discord_service.start()
     _prewarm_rl_classifier()
+    _prewarm_ocr()
 
 
 @app.websocket("/ws/discord/live")
@@ -222,6 +230,45 @@ def discord_status():
 @app.get("/discord/reviews")
 def discord_reviews(pending_only: bool = False):
     return {"items": discord_service.get_records(pending_only=pending_only)}
+
+
+_ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/jpg", "image/png", "image/webp"}
+_MAX_IMAGE_BYTES = 8 * 1024 * 1024  # 8 MB upload cap
+
+
+@app.get("/ocr/status")
+def ocr_status():
+    return ocr_service.status()
+
+
+@app.post("/ocr/moderate")
+async def ocr_moderate(image: UploadFile = File(...)):
+    """OCR an uploaded meme/image, then run the extracted text through the
+    same moderation core that handles Discord messages. Returns the OCR text,
+    the moderation decision, severity, and a fine-grained tag.
+    """
+    ctype = (image.content_type or "").lower().split(";")[0].strip()
+    if ctype not in _ALLOWED_IMAGE_TYPES:
+        raise HTTPException(
+            status_code=415,
+            detail=f"Unsupported content-type: {image.content_type!r}. Use JPEG, PNG, or WebP.",
+        )
+
+    data = await image.read()
+    if not data:
+        raise HTTPException(status_code=400, detail="Empty file upload")
+    if len(data) > _MAX_IMAGE_BYTES:
+        raise HTTPException(status_code=413, detail="Image too large; keep it under 8 MB.")
+
+    text, engine = ocr_service.extract_text(data)
+    moderation = classify_meme_text(text)
+    return {
+        "ocr_engine": engine,
+        "extracted_text": text,
+        "image_bytes": len(data),
+        "filename": image.filename,
+        "moderation": moderation,
+    }
 
 
 @app.post("/discord/review/{message_id}")

@@ -8,3 +8,7 @@ httpx
 pytest
 discord.py
 websockets
+easyocr
+pytesseract
+Pillow
+python-multipart

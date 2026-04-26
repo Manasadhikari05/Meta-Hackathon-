@@ -1,4 +1,4 @@
-import { Shield, LayoutDashboard, Radio } from 'lucide-react'
+import { Shield, LayoutDashboard, Radio, Image as ImageIcon } from 'lucide-react'
 
 export default function Header({
   onAnalyzeModels,
@@ -6,6 +6,7 @@ export default function Header({
   onEnterApp,
   onEnterDashboard,
   onEnterLiveDiscord,
+  onEnterMemeMod,
 }) {
   return (
     <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-100">
@@ -48,6 +49,16 @@ export default function Header({
               </span>
               <Radio className="w-4 h-4 text-emerald-700" />
               LIVE DISCORD
+            </button>
+          )}
+          {onEnterMemeMod && (
+            <button
+              type="button"
+              onClick={onEnterMemeMod}
+              className="hidden md:inline-flex items-center gap-2 text-violet-900 border border-violet-200 bg-violet-50/80 text-sm px-4 py-2 rounded-lg hover:bg-violet-100 transition"
+            >
+              <ImageIcon className="w-4 h-4 text-violet-700" />
+              JPEG/PNG MEMES
             </button>
           )}
           {onEnterApp && (
