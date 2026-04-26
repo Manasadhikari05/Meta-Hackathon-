@@ -3,6 +3,7 @@ import LandingPage from './components/LandingPage'
 import Moderator from './components/Moderator'
 import Dashboard from './components/Dashboard'
 import LiveDiscord from './components/LiveDiscord'
+import MemeMod from './components/MemeMod'
 
 export default function App() {
   const [view, setView] = useState('landing')
@@ -16,11 +17,15 @@ export default function App() {
   if (view === 'liveDiscord') {
     return <LiveDiscord onBack={() => setView('landing')} />
   }
+  if (view === 'memeMod') {
+    return <MemeMod onBack={() => setView('landing')} />
+  }
   return (
     <LandingPage
       onEnterApp={() => setView('moderator')}
       onEnterDashboard={() => setView('dashboard')}
       onEnterLiveDiscord={() => setView('liveDiscord')}
+      onEnterMemeMod={() => setView('memeMod')}
     />
   )
 }

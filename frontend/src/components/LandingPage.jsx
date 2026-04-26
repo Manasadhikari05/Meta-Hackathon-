@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Play, Heart, MessageCircle, Share2, CheckCircle, AlertTriangle, TrendingUp, Bookmark, MoreHorizontal, Shield, Eye, BarChart3, Zap, Activity, Users, Target, Trophy, Cpu, AlertCircle, Clock, CheckSquare, ArrowRight } from 'lucide-react';
+import { Play, Heart, MessageCircle, Share2, CheckCircle, AlertTriangle, TrendingUp, Bookmark, MoreHorizontal, Shield, Eye, BarChart3, Zap, Activity, Users, Target, Trophy, Cpu, AlertCircle, Clock, CheckSquare, ArrowRight, Image as ImageIcon } from 'lucide-react';
 import BenchmarkModal from './BenchmarkModal';
 import Header from './Header';
 
@@ -114,7 +114,7 @@ const LLMLogos = () => (
   </>
 );
 
-export default function LandingPage({ onEnterApp, onEnterDashboard, onEnterLiveDiscord }) {
+export default function LandingPage({ onEnterApp, onEnterDashboard, onEnterLiveDiscord, onEnterMemeMod }) {
   const [showBenchmarkModal, setShowBenchmarkModal] = useState(false);
   const [activeFeature, setActiveFeature] = useState(null);
 
@@ -234,6 +234,7 @@ export default function LandingPage({ onEnterApp, onEnterDashboard, onEnterLiveD
         onEnterApp={onEnterApp}
         onEnterDashboard={onEnterDashboard}
         onEnterLiveDiscord={onEnterLiveDiscord}
+        onEnterMemeMod={onEnterMemeMod}
       />
 
       {/* Hero Section */}
@@ -270,6 +271,16 @@ export default function LandingPage({ onEnterApp, onEnterDashboard, onEnterLiveD
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                 </span>
                 LIVE DISCORD
+              </button>
+            )}
+            {onEnterMemeMod && (
+              <button
+                type="button"
+                onClick={onEnterMemeMod}
+                className="inline-flex items-center gap-2 border border-violet-200 bg-violet-50 text-violet-900 px-6 py-3.5 rounded-2xl text-sm font-semibold hover:bg-violet-100 transition-all duration-200"
+              >
+                <ImageIcon className="w-4 h-4 text-violet-700" />
+                JPEG/PNG MEMES
               </button>
             )}
           </div>
