@@ -1,12 +1,35 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { ChevronLeft, Radio, Trash2, ThumbsUp, Flag, ShieldAlert } from 'lucide-react'
 
+/** Public FastAPI base (e.g. https://your-api.railway.app). Set at build time via VITE_BACKEND_URL. */
+function deployedBackendBase() {
+  const raw = (import.meta.env.VITE_BACKEND_URL || '').trim().replace(/\/$/, '')
+  return raw || null
+}
+
+/** REST path for discord reviews: same host as WS, no /api prefix when talking to FastAPI directly. */
+function discordReviewsUrl() {
+  const base = deployedBackendBase()
+  if (base) return `${base}/discord/reviews?pending_only=false`
+  return '/api/discord/reviews?pending_only=false'
+}
+
 /**
- * Prefer direct FastAPI :7860 — Vite WS proxy is flaky.
- * Use 127.0.0.1 when the page is on "localhost" so we hit IPv4 (uvicorn often
- * rejects ::1 / IPv6-only "localhost" on some Mac setups).
+ * Local dev: prefer direct FastAPI :7860 — Vite WS proxy is flaky.
+ * Production / friends: set VITE_BACKEND_URL so every browser hits YOUR API, not 127.0.0.1 on their machine.
  */
 function buildWsUrlCandidates() {
+  const pub = deployedBackendBase()
+  if (pub) {
+    try {
+      const u = new URL(pub.startsWith('http') ? pub : `https://${pub}`)
+      const wsProto = u.protocol === 'https:' ? 'wss:' : 'ws:'
+      return [`${wsProto}//${u.host}/ws/discord/live`]
+    } catch {
+      /* fall through to local */
+    }
+  }
+
   const secure = window.location.protocol === 'https:'
   const host = window.location.hostname
   const proto = secure ? 'wss' : 'ws'
@@ -89,7 +112,7 @@ export default function LiveDiscord({ onBack }) {
   useEffect(() => {
     async function pollReviews() {
       try {
-        const res = await fetch('/api/discord/reviews?pending_only=false')
+        const res = await fetch(discordReviewsUrl())
         if (!res.ok) return
         const j = await res.json()
         const items = j.items || []
@@ -135,8 +158,11 @@ export default function LiveDiscord({ onBack }) {
       if (cancelled) return
       setConnected(false)
       setLastError(
-        'Could not open the live WebSocket. From the project root run: ' +
-          'uvicorn server.app:app --host 0.0.0.0 --port 7860 — then refresh.',
+        deployedBackendBase()
+          ? 'Could not open the live WebSocket to your deployed API. Check that the backend is running, ' +
+              'HTTPS uses wss://, and CORS allows this site.'
+          : 'Could not open the live WebSocket. Run uvicorn on port 7860, or build the frontend with ' +
+              'VITE_BACKEND_URL=https://your-public-api… so friends connect to your server, not their own 127.0.0.1.',
       )
     }
 
@@ -258,7 +284,11 @@ export default function LiveDiscord({ onBack }) {
             → delete, <strong className="text-slate-200">escalate</strong> → 🚨 + mod log.
           </p>
           <p className="mt-2 text-xs text-slate-500">
-            The page also refreshes from <code className="text-slate-400">/api/discord/reviews</code> every few seconds, so
+            The page also polls the reviews API every few seconds (
+            <code className="text-slate-400">
+              {deployedBackendBase() ? `${deployedBackendBase()}/discord/reviews` : '/api/discord/reviews'}
+            </code>
+            ), so
             moderated messages should appear even if the WebSocket fails. WebSocket prefers{' '}
             <code className="text-slate-400">ws://127.0.0.1:7860/...</code> when you open the app on{' '}
             <code className="text-slate-400">localhost</code>.
