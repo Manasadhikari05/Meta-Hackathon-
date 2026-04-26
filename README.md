@@ -84,7 +84,7 @@ pytest tests/ -v
 2. **CLI (same output):**  
    `python scripts/rl_trainer.py eval-comparison --best-of 4 --limit 40`
 3. **Optional weight update (LoRA BC):** install extras `pip install -r requirements-train.txt`, then  
-   `python -m training.lora_sft --output-dir ./output/qwen-mod-lora`  
+   `python scripts/rl_trainer.py lora-sft --output-dir ./output/qwen-mod-lora`  
    Set `HF_ADAPTER_PATH` in `.env` and restart uvicorn so `inference.py` merges the adapter.
 4. **Frontend:** open **RL training results** from the landing header or dashboard — charts read `GET /training/metrics`.
 
