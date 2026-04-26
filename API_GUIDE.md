@@ -1,9 +1,10 @@
 # Content Moderation OpenEnv — API Guide
 
-The server has two independent APIs running on the same FastAPI app:
+The server has several APIs on the same FastAPI app:
 
 - **AI Moderator** (`/moderate`, `/feedback`, `/history`) — llama3.2 reads user-submitted content and makes a moderation decision. Users then rate the AI's call 1–10.
 - **RL Task Runner** (`/reset`, `/step`, `/state`) — a stateful gym-style environment where an agent moderates posts and gets scored by llama3.2 as judge.
+- **RL training metrics** (`GET /training/metrics`) — JSON written by `RLtrainer.ipynb` or `python scripts/rl_trainer.py eval-comparison` into `results/rl_training_metrics.json` for the frontend before/after charts.
 
 Base URL: `http://localhost:7860`
 

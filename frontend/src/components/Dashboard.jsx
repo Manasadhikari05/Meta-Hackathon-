@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { Shield, ChevronLeft, Wifi, WifiOff, RefreshCw } from 'lucide-react'
+import { Shield, ChevronLeft, Wifi, WifiOff, RefreshCw, BarChart3 } from 'lucide-react'
 import { api } from '../api/client'
 import TaskSelector from './TaskSelector'
 import PostCard from './PostCard'
@@ -11,7 +11,7 @@ const TASK_MAX  = { task1: 1, task2: 8, task3: 12 }
 const TASK_LABEL = { task1: 'Quick Scan', task2: 'Batch Review', task3: 'Edge Cases' }
 
 // phase: 'selecting' | 'playing' | 'done'
-export default function Dashboard({ onBack }) {
+export default function Dashboard({ onBack, onTrainingMetrics }) {
   const [phase, setPhase]           = useState('selecting')
   const [taskId, setTaskId]         = useState(null)
   const [observation, setObs]       = useState(null)
@@ -102,6 +102,18 @@ export default function Dashboard({ onBack }) {
           <ChevronLeft className="w-4 h-4" /> Home
         </button>
         <TaskSelector onSelect={startTask} loading={loading} />
+        {onTrainingMetrics && (
+          <div className="max-w-xl mx-auto mt-6 text-center">
+            <button
+              type="button"
+              onClick={onTrainingMetrics}
+              className="inline-flex items-center gap-2 text-sm text-indigo-600 border border-indigo-200 rounded-xl px-4 py-2 hover:bg-indigo-50 transition"
+            >
+              <BarChart3 className="w-4 h-4" />
+              View RL training before / after charts
+            </button>
+          </div>
+        )}
         {error && <ErrorBanner msg={error} onDismiss={() => setError(null)} />}
       </div>
     )
@@ -162,6 +174,15 @@ export default function Dashboard({ onBack }) {
           >
             <ChevronLeft className="w-3.5 h-3.5" /> Home
           </button>
+          {onTrainingMetrics && (
+            <button
+              type="button"
+              onClick={onTrainingMetrics}
+              className="text-xs text-indigo-400 hover:text-indigo-200 flex items-center gap-1 transition"
+            >
+              <BarChart3 className="w-3.5 h-3.5" /> RL charts
+            </button>
+          )}
         </div>
       </header>
 

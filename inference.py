@@ -50,7 +50,17 @@ if USE_LOCAL_LLM:
     except Exception as e:
         print(f"Failed to load local model: {e}")
         sys.exit(1)
-    
+
+    _adapter = os.getenv("HF_ADAPTER_PATH", "").strip()
+    if _adapter:
+        try:
+            from peft import PeftModel
+
+            model = PeftModel.from_pretrained(model, _adapter)
+            print(f"Loaded LoRA adapter from {_adapter}")
+        except Exception as exc:
+            print(f"[HF_ADAPTER_PATH] Could not merge LoRA adapter: {exc}")
+
     client = None
 else:
     print(f"Initializing Cloud OpenAI Model: {MODEL_NAME}")

@@ -114,7 +114,7 @@ const LLMLogos = () => (
   </>
 );
 
-export default function LandingPage({ onEnterApp, onEnterDashboard, onEnterLiveDiscord, onEnterMemeMod }) {
+export default function LandingPage({ onEnterApp, onEnterDashboard, onEnterLiveDiscord, onEnterMemeMod, onEnterTrainingMetrics }) {
   const [showBenchmarkModal, setShowBenchmarkModal] = useState(false);
   const [activeFeature, setActiveFeature] = useState(null);
 
@@ -235,6 +235,7 @@ export default function LandingPage({ onEnterApp, onEnterDashboard, onEnterLiveD
         onEnterDashboard={onEnterDashboard}
         onEnterLiveDiscord={onEnterLiveDiscord}
         onEnterMemeMod={onEnterMemeMod}
+        onEnterTrainingMetrics={onEnterTrainingMetrics}
       />
 
       {/* Hero Section */}
@@ -281,6 +282,16 @@ export default function LandingPage({ onEnterApp, onEnterDashboard, onEnterLiveD
               >
                 <ImageIcon className="w-4 h-4 text-violet-700" />
                 JPEG/PNG MEMES
+              </button>
+            )}
+            {onEnterTrainingMetrics && (
+              <button
+                type="button"
+                onClick={onEnterTrainingMetrics}
+                className="inline-flex items-center gap-2 border border-indigo-200 bg-indigo-50 text-indigo-900 px-6 py-3.5 rounded-2xl text-sm font-semibold hover:bg-indigo-100 transition-all duration-200"
+              >
+                <BarChart3 className="w-4 h-4 text-indigo-700" />
+                RL training results
               </button>
             )}
           </div>
