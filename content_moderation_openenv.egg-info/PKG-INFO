@@ -41,12 +41,13 @@ An LLM agent reviews social media posts one at a time, classifies each one (appr
 
 ```bash
 pip install -r requirements.txt
+pip install transformers accelerate sentencepiece torch bitsandbytes
 cp .env.example .env  # add your API key + model
 
 # start the env server
 uvicorn server.app:app --host 0.0.0.0 --port 7860
 
-# in another terminal, run the agent
+# in another terminal, run the agent (downloads local model automatically on first run)
 python inference.py
 ```
 
@@ -82,9 +83,10 @@ docker run -p 7860:7860 cm-openenv
 
 Set these in `.env`:
 
-- `API_BASE_URL` — LLM endpoint (e.g. `https://api.groq.com/openai/v1`)
-- `MODEL_NAME` — model to use (e.g. `llama-3.3-70b-versatile`) 
-- `HF_TOKEN` — API key
+- `USE_LOCAL_LLM` — Set to `true` (default) to run local HuggingFace inference, `false` to fallback to cloud API
+- `HF_MODEL_ID` — Local HuggingFace model to use (e.g. `mistralai/Mistral-7B-Instruct-v0.2`)
+- `OPENAI_API_KEY` — API key for ai_grader (and optional inference fallback)
+- `MODEL_NAME` — Cloud model to use if `USE_LOCAL_LLM=false` (e.g. `gpt-4o-mini`)
 
 ## Tests
 
